@@ -1,0 +1,1 @@
+console.log("logicgate_front.js loaded");
