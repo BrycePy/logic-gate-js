@@ -15,16 +15,20 @@ const State = Object.freeze({
 });
 
 class Terminal {
-  constructor(e) {
+  constructor(e, parent) {
     this.is_source = false;
     this.state = State.OFF;
     this.dom_element = e;
+    this.parent = parent;
     terminals.push(this);
   }
-
   remove(){
     var index = terminals.indexOf(this);
     terminals.splice(index, 1);
+
+    if(previousTerminal === this){
+      previousTerminal = null;
+    }
   }
 }
 
@@ -51,9 +55,9 @@ class Wire {
 class Gate{
   constructor(func){
     this.func = func;
-    this.in1 = new Terminal();
-    this.in2 = new Terminal();
-    this.out = new Terminal();
+    this.in1 = new Terminal(null, this);
+    this.in2 = new Terminal(null, this);
+    this.out = new Terminal(null, this);
     this.out.is_source = true;
     this.dom_element = null;
     gates.push(this);
@@ -71,10 +75,12 @@ class Gate{
     getWiresFrom(this.in1).forEach(w => w.remove());
     getWiresFrom(this.in2).forEach(w => w.remove());
     getWiresFrom(this.out).forEach(w => w.remove());
+    this.in1.remove();
+    this.in2.remove();
+    this.out.remove();
     var index = gates.indexOf(this);
     gates.splice(index, 1);
   }
-
 }
 
 last_state = ""
@@ -83,16 +89,19 @@ finished = false
 
 var div = document.getElementById("app");
 div.style.backgroundColor = "#aaa";
-div.style.width = "512px";
-div.style.height = "480px";
+div.style.width = "600px";
+div.style.height = "500px";
 div.style.position = "relative";
 
 var canvas = document.createElement("canvas");
-canvas.width = 512;
-canvas.height = 480;
+canvas.width = parseInt(div.style.width);
+canvas.height = parseInt(div.style.height);
+canvas.style.width = div.style.width;
+canvas.style.height = div.style.height;
 canvas.style.position = "absolute";
 canvas.style.left = div.style.left;
 canvas.style.top = div.style.top;
+var ctx = canvas.getContext("2d");
 div.appendChild(canvas);
 
 var sline = document.getElementById("straight-line");
@@ -111,10 +120,13 @@ var resetFinished = function(){
 }
 
 $("#truthtable tr").click(function(){
+  var $tr = $(this);
+  if ($tr.index() == 0) {
+    return;
+  }
   clearTableBG();
   resetFinished();
   $(this).css("background-color", "yellow");
-  var $tr = $(this);
   var s1 = $tr.find("td").eq(0).text();
   var s2 = $tr.find("td").eq(1).text();
   var s3 = $tr.find("td").eq(2).text();
@@ -216,36 +228,44 @@ class Dragable{
   constructor(gate){
     this.e = gate.dom_element;
     this.isMouseDown = false;
-    this.offsetX = 0;
-    this.offsetY = 0;
-
+    this.original_clientX = 0;
+    this.original_clientY = 0;
+    this.original_left = 0;
+    this.original_top = 0;
+    
     this.e.addEventListener("mousedown", (event) => {
       this.isMouseDown = true;
-      this.offsetX = event.offsetX;
-      this.offsetY = event.offsetY;
     });
-    this.e.addEventListener("mouseup", (event) => {
+    window.addEventListener("mousedown", (event) => {
+      this.original_clientX = event.clientX;
+      this.original_clientY = event.clientY;
+      this.original_left = parseInt(this.e.style.left);
+      this.original_top = parseInt(this.e.style.top);
+    });
+    window.addEventListener("mouseup", (event) => {
       this.isMouseDown = false;
-      this.e.style.left = Math.round(parseInt(this.e.style.left) / 10) * 10 + "px";
-      this.e.style.top = Math.round(parseInt(this.e.style.top) / 10) * 10 + "px";
     });
-    this.e.addEventListener("mousemove", (event) => {
+    window.addEventListener("mousemove", (event) => {
       if (this.isMouseDown) {
-        this.e.style.left = event.clientX - this.offsetX + "px";
-        this.e.style.top = event.clientY - this.offsetY + "px";
+        // console.log(event)
+        var left = parseInt(this.original_left);
+        var top = parseInt(this.original_top);
+        var clientX = parseInt(event.clientX);
+        var clientY = parseInt(event.clientY);
+        var dx = clientX - this.original_clientX;
+        var dy = clientY - this.original_clientY;
+        this.e.style.left = `${left + dx}px`;
+        this.e.style.top = `${top + dy}px`;
       }
     });
-    this.e.addEventListener("mouseout", (event) => {
-      this.isMouseDown = false;
-      this.e.style.left = Math.round(parseInt(this.e.style.left) / 10) * 10 + "px";
-    });
-}
+  }
 }
 
 class Removeable{
   constructor(gate){
     this.e = gate.dom_element;
-    this.e.addEventListener("dblclick", () => {
+    this.e.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
       this.e.remove();
       gate.delete();
     });
@@ -476,8 +496,8 @@ function createSwitch(left, top) {
 
   inputs.push(_gate.out);
 
-  new Dragable(_gate);
-  new Removeable(_gate);
+  // new Dragable(_gate);
+  // new Removeable(_gate);
 
   return _gate;
 }
@@ -512,7 +532,7 @@ function createOutput(left, top) {
   div.appendChild(gate);
 
   new Dragable(_gate);
-  new Removeable(_gate);
+  // new Removeable(_gate);
 
   return _gate;
 }
@@ -548,7 +568,7 @@ function deleteWires(wires_to_remove){
 
 var previousTerminal = null;
 function makeConnection(terminal) {
-  console.log("makeConnection");
+  // console.log("makeConnection");
   if (terminal === previousTerminal) { return; }
   if (previousTerminal === null) {
     previousTerminal = terminal;
@@ -563,25 +583,24 @@ function makeConnection(terminal) {
   }
 }
 
+var tick_blink = false;
 function drawWires() {
-  var ctx = canvas.getContext("2d");
-  
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if(finished){
-    ctx.fillStyle = "green";
-  }else{
-    ctx.fillStyle = "red";
-  }
+  ctx.fillStyle = finished ? "#4f4" : "#f44";
   ctx.fillRect(0, 0, 10, 10);
 
-
+  ctx.fillStyle = tick_blink ? "#fff" : "#ccc";
+  ctx.fillRect(10, 0, 10, 10);
 
   for (var i = 0; i < wires.length; i++) {
     var wire = wires[i];
 
-    var jq_terminal1 = $(wire.terminal1.dom_element);
-    var jq_terminal2 = $(wire.terminal2.dom_element);
+    var terminal1 = wire.terminal1;
+    var terminal2 = wire.terminal2;
+
+    var jq_terminal1 = $(terminal1.dom_element);
+    var jq_terminal2 = $(terminal2.dom_element);
 
     var position1 = jq_terminal1.offset()
     var position2 = jq_terminal2.offset()
@@ -597,16 +616,55 @@ function drawWires() {
     ctx.beginPath();
     ctx.strokeStyle = wire.state === State.ON ? "white" : "black";
 
-    if(sline.checked){
-      ctx.moveTo(position1.left, position1.top);
-      ctx.lineTo(x_mid, position1.top);
-      ctx.lineTo(x_mid, position2.top);
-      ctx.lineTo(position2.left, position2.top);
-      ctx.stroke();      
+    var src_position, sink_position;
+    if(wire.terminal1.is_source){
+      src_position = position1;
+      sink_position = position2;
     }else{
-      ctx.moveTo(position1.left, position1.top);
-      ctx.lineTo(position2.left, position2.top);
+      src_position = position2;
+      sink_position = position1;
+    }
 
+    if(terminal1.parent === terminal2.parent){
+      var y_offset = 50;
+      var x_offset = 30;
+      if(sink_position.top > src_position.top){
+        y_offset = -y_offset;
+      }
+      ctx.moveTo(src_position.left, src_position.top);
+      ctx.lineTo(src_position.left + x_offset, src_position.top);
+      ctx.lineTo(src_position.left + x_offset, src_position.top - y_offset);
+      ctx.lineTo(sink_position.left - x_offset, src_position.top - y_offset);
+      ctx.lineTo(sink_position.left - x_offset, sink_position.top);
+      ctx.lineTo(sink_position.left, sink_position.top);
+    }else if(src_position.left > sink_position.left){
+      var y_offset = 20;
+      var x_offset = 30;
+      ctx.moveTo(src_position.left, src_position.top);
+      ctx.lineTo(src_position.left + x_offset, src_position.top);
+      if(src_position.top < sink_position.top){
+        ctx.lineTo(src_position.left + x_offset, src_position.top + y_offset);
+        ctx.lineTo(sink_position.left - x_offset, sink_position.top - y_offset);
+        ctx.lineTo(sink_position.left - x_offset, sink_position.top);
+        ctx.lineTo(sink_position.left, sink_position.top);
+      }else{
+        ctx.lineTo(src_position.left + x_offset, src_position.top - y_offset);
+        ctx.lineTo(sink_position.left - x_offset, sink_position.top + y_offset);
+        ctx.lineTo(sink_position.left - x_offset, sink_position.top);
+        ctx.lineTo(sink_position.left, sink_position.top);
+      }
+
+    }else{
+      if(sline.checked){
+        ctx.moveTo(position1.left, position1.top);
+        ctx.lineTo(x_mid, position1.top);
+        ctx.lineTo(x_mid, position2.top);
+        ctx.lineTo(position2.left, position2.top);
+        ctx.stroke();      
+      }else{
+        ctx.moveTo(position1.left, position1.top);
+        ctx.lineTo(position2.left, position2.top);
+      }
     }
     ctx.stroke();
 
@@ -616,7 +674,7 @@ function drawWires() {
 function updateTerminalsColor(){
   for(var i = 0; i < terminals.length; i++){
     var terminal = terminals[i];
-    if (terminal.dom_element === undefined) {
+    if (terminal.dom_element === undefined || terminal.dom_element === null) {
       continue;
     }
     if(terminal.state === State.ON){
@@ -750,6 +808,7 @@ function tick() {
   updateWires();
   updateWireOutput();
   checkFinished();
+  tick_blink = !tick_blink;
 }
 
 requestAnimationFrame(vitualTick);
