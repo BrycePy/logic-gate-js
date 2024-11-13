@@ -78,16 +78,16 @@ class Gate {
     this.world = world;
     world.gates.push(this);
 
-    this.func = funcSpec.func;
-    this.input_terminals = [];
-    this.output_terminals = [];
+    this.funcSpec = funcSpec;
+    this.inputTerminals = [];
+    this.outputTerminals = [];
 
-    for (let i = 0; i < funcSpec.input_count; i++) {
-      this.input_terminals.push(new Terminal(world, this, false));
+    for (let i = 0; i < funcSpec.inputCount; i++) {
+      this.inputTerminals.push(new Terminal(world, this, false));
     }
 
-    for (let i = 0; i < funcSpec.output_count; i++) {
-      this.output_terminals.push(new Terminal(world, this, true));
+    for (let i = 0; i < funcSpec.outputCount; i++) {
+      this.outputTerminals.push(new Terminal(world, this, true));
     }
   }
   setDomElement(domElement) {
@@ -95,30 +95,38 @@ class Gate {
   }
 
   update() {
-    if (this.input_terminals.length === 0) return;
-    if (this.output_terminals.length === 0) return;
-    let inputs = this.input_terminals.map(t => t.state);
-    let outputs = this.func(...inputs);
+    if (this.inputTerminals.length === 0) return;
+    if (this.outputTerminals.length === 0) return;
+    let inputs = this.inputTerminals.map(t => t.state);
+    let outputs = this.funcSpec.func(...inputs);
+    if (outputs === undefined) return;
     if (outputs instanceof Array) {
       outputs.forEach((output, i) => {
-        this.output_terminals[i].state = output;
+        this.outputTerminals[i].state = output;
       });
     } else {
-      this.output_terminals[0].state = outputs;
+      this.outputTerminals[0].state = outputs;
     }
   }
 
   terminals() {
-    return this.input_terminals.concat(this.output_terminals);
+    return this.inputTerminals.concat(this.outputTerminals);
+  }
+
+  unlinkAll() {
+    this.terminals().forEach(t => {
+      this.world.getWiresByTerminal(t).forEach(w => w.remove());
+    })
   }
 
   remove() {
+    this.unlinkAll();
     this.world.inputs = this.world.inputs.filter(g => g !== this);
     this.world.outputs = this.world.outputs.filter(g => g !== this);
     this.world.gates = this.world.gates.filter(g => g !== this);
     this.world = null;
-    this.input_terminals.forEach(t => t.remove());
-    this.output_terminals.forEach(t => t.remove());
+    this.inputTerminals.forEach(t => t.remove());
+    this.outputTerminals.forEach(t => t.remove());
     if (this.domElement) {
       this.domElement.remove();
     }
@@ -140,11 +148,11 @@ class EventManager {
 }
 
 class LogicGateFunctionSpec {
-  constructor(name, func, input_count, output_count) {
+  constructor(name, func, inputCount, outputCount) {
     this.name = name;
     this.func = func;
-    this.input_count = input_count;
-    this.output_count = output_count;
+    this.inputCount = inputCount;
+    this.outputCount = outputCount;
   }
 }
 
@@ -176,6 +184,11 @@ class World {
 
   setDomElement(domElement) {
     this.domElement = domElement;
+  }
+
+  notifyInstability() {
+    this.instableCount++;
+    this.stableCount = 0;
   }
 
   checkFinished() {
@@ -212,7 +225,6 @@ class World {
   }
 
   makeConnection(terminal) {
-    console.log("Making connection", terminal);
     if (!this.previousTerminal) {
       this.previousTerminal = terminal;
     } else {
@@ -220,7 +232,11 @@ class World {
       if(existingWires.length > 0) {
         existingWires.forEach(w => w.remove());
       }else{
-        new Wire(this, this.previousTerminal, terminal);
+        let sink = terminal.isSource ? this.previousTerminal : terminal;
+        let wirestoSink = this.getWiresByTerminal(sink);
+        if(wirestoSink.length == 0){
+          new Wire(this, this.previousTerminal, terminal);
+        }
       }
       this.previousTerminal = null;
     }

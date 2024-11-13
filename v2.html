@@ -6,6 +6,9 @@
     <title>Document</title>
   </head>
   <body>
+    <h1>Logic Gate Simulator</h1>
+
+    <h2>Main</h2>
     <div id="app">
       <div id="main-div"></div>
       <div id="gate-deck">
@@ -15,6 +18,10 @@
         <button id="add-switch" class="btn-add-gate">SWITCH</button>
       </div>
     </div>
+
+    <h2>USER</h2>
+    <div id="user-defined-gates"></div>
+
     <!-- input checkbox id straigth line -->
     <table id="truthtable">
       <tr>
@@ -82,6 +89,15 @@
           <div class="terminal"></div>
         </div>
       </div>
+
+      <div id="logic-world-template" class="logic-gate-div-relative">
+        <span class="logic-gate-label">USER</span>
+        <div class="input-terminals terminal-container">
+        </div>
+        <div class="output-terminals terminal-container">
+        </div>
+      </div>
+
     </section>
   </body>
 

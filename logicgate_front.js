@@ -1,3 +1,16 @@
+const calculateOffset = (element, parent) => {
+  let offset = {top: 0, left: 0};
+  while (element !== parent) {
+    if (!element) {
+      return offset;
+    }
+    offset.top += element.offsetTop;
+    offset.left += element.offsetLeft;
+    element = element.parentElement;
+  }
+  return offset;
+};
+
 class LogicCanvas {
   constructor(world, div) {
     this.world = world;
@@ -22,11 +35,11 @@ class LogicCanvas {
 
   updateTerminalsDom() {
     this.world.terminals.forEach(terminal => {
-      let jq_terminal = $(terminal.domElement);
+      let jqTerminal = $(terminal.domElement);
       if (terminal.state === State.ON) {
-        jq_terminal.addClass("terminal-on");
+        jqTerminal.addClass("terminal-on");
       } else {
-        jq_terminal.removeClass("terminal-on");
+        jqTerminal.removeClass("terminal-on");
       }
     });
   }
@@ -60,18 +73,19 @@ class LogicCanvas {
     this.world.wires.forEach(wire => {
       let terminal1 = wire.terminalSrc;
       let terminal2 = wire.terminalSink;
-      let jq_terminal1 = $(terminal1.domElement);
-      let jq_terminal2 = $(terminal2.domElement);
+      let jqTerminal1 = $(terminal1.domElement);
+      let jqTerminal2 = $(terminal2.domElement);
 
-      let src_position = jq_terminal1.offset()
-      let sink_position = jq_terminal2.offset()
-      src_position.top -= jq_terminal1.height() / 2;
-      src_position.left -= jq_terminal1.width() / 2;
-      sink_position.top -= jq_terminal2.height() / 2;
-      sink_position.left -= jq_terminal2.width() / 2;
+      let srcPos = calculateOffset(terminal1.domElement, this.div);
+      let sinkPos = calculateOffset(terminal2.domElement, this.div);
+      // console.log(srcPos, sinkPos);
+      srcPos.top += jqTerminal1.height() / 2;
+      srcPos.left += jqTerminal1.width() / 2;
+      sinkPos.top += jqTerminal2.height() / 2;
+      sinkPos.left += jqTerminal2.width() / 2;
 
-      let x_mid = (src_position.left + sink_position.left) / 2;
-      let y_mid = (src_position.top + sink_position.top) / 2;
+      let xMid = (srcPos.left + sinkPos.left) / 2;
+      let yMid = (srcPos.top + sinkPos.top) / 2;
 
       ctx.beginPath();
       ctx.strokeStyle = wire.state === State.ON ? "white" : "black";
@@ -81,50 +95,50 @@ class LogicCanvas {
           let yOffset = 50;
           let xOffset = 30;
           let bridgeY;
-          if (sink_position.top > src_position.top) {
-            bridgeY = src_position.top - yOffset;
+          if (sinkPos.top > srcPos.top) {
+            bridgeY = srcPos.top - yOffset;
           }else{
-            bridgeY = src_position.top + yOffset;
+            bridgeY = srcPos.top + yOffset;
           }
-          ctx.moveTo(src_position.left, src_position.top);
-          ctx.lineTo(src_position.left + xOffset, src_position.top);
-          ctx.lineTo(src_position.left + xOffset, bridgeY);
-          ctx.lineTo(sink_position.left - xOffset, bridgeY);
-          ctx.lineTo(sink_position.left - xOffset, sink_position.top);
-          ctx.lineTo(sink_position.left, sink_position.top);
+          ctx.moveTo(srcPos.left, srcPos.top);
+          ctx.lineTo(srcPos.left + xOffset, srcPos.top);
+          ctx.lineTo(srcPos.left + xOffset, bridgeY);
+          ctx.lineTo(sinkPos.left - xOffset, bridgeY);
+          ctx.lineTo(sinkPos.left - xOffset, sinkPos.top);
+          ctx.lineTo(sinkPos.left, sinkPos.top);
         },
         "src-right-of-sink": () => {
           let yOffset = 30;
           let xOffset = 30;
-          ctx.moveTo(src_position.left, src_position.top);
-          ctx.lineTo(src_position.left + xOffset, src_position.top);
-          if (src_position.top < sink_position.top) {
-            ctx.lineTo(src_position.left + xOffset, src_position.top + yOffset);
-            ctx.lineTo(sink_position.left - xOffset, sink_position.top - yOffset);
-            ctx.lineTo(sink_position.left - xOffset, sink_position.top);
-            ctx.lineTo(sink_position.left, sink_position.top);
+          ctx.moveTo(srcPos.left, srcPos.top);
+          ctx.lineTo(srcPos.left + xOffset, srcPos.top);
+          if (srcPos.top < sinkPos.top) {
+            ctx.lineTo(srcPos.left + xOffset, srcPos.top + yOffset);
+            ctx.lineTo(sinkPos.left - xOffset, sinkPos.top - yOffset);
+            ctx.lineTo(sinkPos.left - xOffset, sinkPos.top);
+            ctx.lineTo(sinkPos.left, sinkPos.top);
           } else {
-            ctx.lineTo(src_position.left + xOffset, src_position.top - yOffset);
-            ctx.lineTo(sink_position.left - xOffset, sink_position.top + yOffset);
-            ctx.lineTo(sink_position.left - xOffset, sink_position.top);
-            ctx.lineTo(sink_position.left, sink_position.top);
+            ctx.lineTo(srcPos.left + xOffset, srcPos.top - yOffset);
+            ctx.lineTo(sinkPos.left - xOffset, sinkPos.top + yOffset);
+            ctx.lineTo(sinkPos.left - xOffset, sinkPos.top);
+            ctx.lineTo(sinkPos.left, sinkPos.top);
           }
         },
         "default-grid": () => {
-          ctx.moveTo(src_position.left, src_position.top);
-          ctx.lineTo(x_mid, src_position.top);
-          ctx.lineTo(x_mid, sink_position.top);
-          ctx.lineTo(sink_position.left, sink_position.top);
+          ctx.moveTo(srcPos.left, srcPos.top);
+          ctx.lineTo(xMid, srcPos.top);
+          ctx.lineTo(xMid, sinkPos.top);
+          ctx.lineTo(sinkPos.left, sinkPos.top);
         },
         "default": () => {
-          ctx.moveTo(src_position.left, src_position.top);
-          ctx.lineTo(sink_position.left, sink_position.top);
+          ctx.moveTo(srcPos.left, srcPos.top);
+          ctx.lineTo(sinkPos.left, sinkPos.top);
         }
       }
       
-      let dx = sink_position.left - src_position.left;
-      let dy = Math.abs(src_position.top - sink_position.top);
-      let srcRightOfSink = src_position.left > sink_position.left;
+      let dx = sinkPos.left - srcPos.left;
+      let dy = Math.abs(srcPos.top - sinkPos.top);
+      let srcRightOfSink = srcPos.left > sinkPos.left;
       let sameParent = terminal1.parent === terminal2.parent;
 
       if (sameParent || (srcRightOfSink && dy < 70)) {
@@ -163,23 +177,23 @@ class LogicCanvas {
     let inputsContainer = $(clone).find(".input-terminals")[0];
     let outputsContainer = $(clone).find(".output-terminals")[0];
 
-    let inputs_terminals = $(inputsContainer).children();
-    let outputs_terminals = $(outputsContainer).children();
+    let inputsTerminals = $(inputsContainer).children();
+    let outputsTerminals = $(outputsContainer).children();
 
-    if (inputs_terminals.length !== functionSpec.input_count) {
+    if (inputsTerminals.length !== functionSpec.inputCount) {
       throw new Error("Input count does not match");
     }
-    if (outputs_terminals.length !== functionSpec.output_count) {
+    if (outputsTerminals.length !== functionSpec.outputCount) {
       throw new Error("Output count does not match");
     }
 
     let gate = this.world.createLogicGate(functionSpec);
     gate.setDomElement(clone);
-    gate.input_terminals.forEach((terminal, i) => {
-      terminal.setDomElement(inputs_terminals[i]);
+    gate.inputTerminals.forEach((terminal, i) => {
+      terminal.setDomElement(inputsTerminals[i]);
     });
-    gate.output_terminals.forEach((terminal, i) => {
-      terminal.setDomElement(outputs_terminals[i]);
+    gate.outputTerminals.forEach((terminal, i) => {
+      terminal.setDomElement(outputsTerminals[i]);
     });
 
     gate.terminals().forEach(terminal => {
@@ -204,8 +218,8 @@ class LogicCanvas {
     this.world.addInputGate(gate);
 
     gate.domElement.addEventListener("click", () => {
-      let current_state = gate.output_terminals[0].state;
-      gate.output_terminals[0].state = !current_state;
+      let currentState = gate.outputTerminals[0].state;
+      gate.outputTerminals[0].state = !currentState;
     });
 
     let worldInputs = this.world.inputs;
@@ -217,6 +231,7 @@ class LogicCanvas {
       inputGate.domElement.style.top = `${yOffset}px`;
       yOffset += stepSize;
     });
+    return gate;
   }
 
   createOutput(template) {
@@ -232,6 +247,69 @@ class LogicCanvas {
       outputGate.domElement.style.top = `${yOffset}px`;
       yOffset += stepSize;
     });
+    return gate;
+  }
+
+  linkWorld(template, otherWorld, x, y) {
+    console.log(otherWorld);
+    let clone = template.cloneNode(true);
+    $(clone).removeClass("logic-gate-div-relative");
+    $(clone).addClass("logic-gate-div-absolute");
+    this.div.appendChild(clone);
+    clone.style.left = `${x || 100}px`;
+    clone.style.top = `${y || 100}px`;
+    $(clone).draggable();
+
+    let inputsContainer = $(clone).find(".input-terminals")[0];
+    let outputsContainer = $(clone).find(".output-terminals")[0];
+
+    console.log(inputsContainer);
+
+    let functionSpecWORLD = new LogicGateFunctionSpec(
+      "world",
+      () => {},
+      otherWorld.inputs.length,
+      otherWorld.outputs.length
+    )
+    let gate = this.world.createLogicGate(functionSpecWORLD);
+    gate.setDomElement(clone);
+
+    otherWorld.inputs.forEach((inputGate, i) => {
+      let newTerminalDom = document.createElement("div");
+      newTerminalDom.classList.add("terminal");
+      inputsContainer.appendChild(newTerminalDom);
+      gate.inputTerminals[i].setDomElement(newTerminalDom);
+    });
+
+    otherWorld.outputs.forEach((outputGate, i) => {
+      let newTerminalDom = document.createElement("div");
+      newTerminalDom.classList.add("terminal");
+      outputsContainer.appendChild(newTerminalDom);
+      gate.outputTerminals[i].setDomElement(newTerminalDom);
+    });
+
+    gate.terminals().forEach(terminal => {
+      terminal.domElement.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.world.makeConnection(terminal);
+      });
+    });
+
+    let linkFunction = () => {
+      otherWorld.inputs.forEach((inputGate, i) => {
+        inputGate.outputTerminals[0].state = gate.inputTerminals[i].state;
+      });
+      otherWorld.outputs.forEach((outputGate, i) => {
+        gate.outputTerminals[i].state = outputGate.inputTerminals[0].state;
+      });
+      otherWorld.tick();
+      if(!otherWorld.isStable()) {
+        this.world.notifyInstability();
+      }
+    }
+    functionSpecWORLD.func = linkFunction;
+
+    return gate;
   }
 
   worldTick() {
@@ -247,40 +325,99 @@ class LogicCanvas {
   }
 }
 
-
-let mainWorld = new World();
-let mainDiv = document.getElementById("main-div");
-mainDiv.style.width = "600px"
-mainDiv.style.height = "400px"
-
-let logicCanvas = new LogicCanvas(mainWorld, mainDiv);
-
 let templates = {
   "and": document.getElementById("logic-and-template"),
   "or": document.getElementById("logic-or-template"),
   "not": document.getElementById("logic-not-template"),
   "in": document.getElementById("logic-in-template"),
-  "out": document.getElementById("logic-out-template")
+  "out": document.getElementById("logic-out-template"),
+  "world": document.getElementById("logic-world-template")
 }
+
+function createLatch(){
+  let latchWorld = new World();
+  let userDefinedGateDiv = document.getElementById("user-defined-gates");
+  let latchDiv = document.createElement("div");
+  latchDiv.style.width = "400px"
+  latchDiv.style.height = "200px"
+  userDefinedGateDiv.appendChild(latchDiv);
+
+  let latchCanvas = new LogicCanvas(latchWorld, latchDiv);
+
+  let gateOr1 = latchCanvas.createGateElement(templates["or"], functionSpecOR, 130, 20);
+  let gateNot1 = latchCanvas.createGateElement(templates["not"], functionSpecNOT, 200, 20);
+
+  let gateOr2 = latchCanvas.createGateElement(templates["or"], functionSpecOR, 130, 130);
+  let gateNot2 = latchCanvas.createGateElement(templates["not"], functionSpecNOT, 200, 130);
+
+  let in1 = latchCanvas.createInput(templates["in"]);
+  let in2 = latchCanvas.createInput(templates["in"]);
+  let out1 = latchCanvas.createOutput(templates["out"]);
+  let out2 = latchCanvas.createOutput(templates["out"]);
+
+  latchWorld.makeConnection(in1.outputTerminals[0]);
+  latchWorld.makeConnection(gateOr1.inputTerminals[0]);
+
+  latchWorld.makeConnection(in2.outputTerminals[0]);
+  latchWorld.makeConnection(gateOr2.inputTerminals[1]);
+
+  latchWorld.makeConnection(gateOr1.outputTerminals[0]);
+  latchWorld.makeConnection(gateNot1.inputTerminals[0]);
+
+  latchWorld.makeConnection(gateOr2.outputTerminals[0]);
+  latchWorld.makeConnection(gateNot2.inputTerminals[0]);
+
+  latchWorld.makeConnection(gateNot1.outputTerminals[0]);
+  latchWorld.makeConnection(out1.inputTerminals[0]);
+
+  latchWorld.makeConnection(gateNot2.outputTerminals[0]);
+  latchWorld.makeConnection(out2.inputTerminals[0]);
+
+  latchWorld.makeConnection(gateNot1.outputTerminals[0]);
+  latchWorld.makeConnection(gateOr2.inputTerminals[0]);
+
+  latchWorld.tick();
+  latchWorld.tick();
+
+  latchWorld.makeConnection(gateNot2.outputTerminals[0]);
+  latchWorld.makeConnection(gateOr1.inputTerminals[1]);
+
+  return latchCanvas;
+}
+
+
+let mainWorld = new World();
+let mainDiv = document.getElementById("main-div");
+mainDiv.style.width = "600px"
+mainDiv.style.height = "400px"
+let logicCanvas = new LogicCanvas(mainWorld, mainDiv);
 
 let gateAnd = logicCanvas.createGateElement(templates["and"], functionSpecAND, 150, 100);
 let gateOr = logicCanvas.createGateElement(templates["or"], functionSpecOR, 150, 200);
 let gateNot = logicCanvas.createGateElement(templates["not"], functionSpecNOT, 300, 100);
 
-mainWorld.makeConnection(gateAnd.output_terminals[0]);
-mainWorld.makeConnection(gateOr.input_terminals[0]);
+mainWorld.makeConnection(gateAnd.outputTerminals[0]);
+mainWorld.makeConnection(gateOr.inputTerminals[0]);
 
-mainWorld.makeConnection(gateNot.output_terminals[0]);
-mainWorld.makeConnection(gateNot.input_terminals[0]);
+mainWorld.makeConnection(gateNot.outputTerminals[0]);
+mainWorld.makeConnection(gateNot.inputTerminals[0]);
 
 logicCanvas.createInput(templates["in"]);
 logicCanvas.createInput(templates["in"]);
 logicCanvas.createInput(templates["in"]);
 logicCanvas.createOutput(templates["out"]);
 logicCanvas.createOutput(templates["out"]);
+
+let latch1 = createLatch();
+let latch2 = createLatch();
+
+logicCanvas.linkWorld(templates["world"], latch1.world, 300, 200);
+logicCanvas.linkWorld(templates["world"], latch2.world, 400, 200);
 
 const visualTick = () => {
   logicCanvas.visualTick();
+  latch1.visualTick();
+  latch2.visualTick();
   requestAnimationFrame(visualTick);
 }
 requestAnimationFrame(visualTick);
@@ -288,6 +425,6 @@ requestAnimationFrame(visualTick);
 const backendTick = () => {
   logicCanvas.worldTick();
 }
-setInterval(backendTick, 100);
+setInterval(backendTick, 1000/30);
 
 console.log("logicgate_front.js loaded");
