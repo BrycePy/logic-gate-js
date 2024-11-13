@@ -7,15 +7,12 @@
   </head>
   <body>
     <div id="app">
-      <div id="main-div">
-        <canvas id="main-canvas" width="800" height="600"></canvas>
-      </div>
-
-      <div id="gate-deck"">
-        <button id="add-and" class="add_gate">AND</button>
-        <button id="add-or" class="add_gate">OR</button>
-        <button id="add-not" class="add_gate">NOT</button>
-        <button id="add-switch" class="add_gate">SWITCH</button>
+      <div id="main-div"></div>
+      <div id="gate-deck">
+        <button id="add-and" class="btn-add-gate">AND</button>
+        <button id="add-or" class="btn-add-gate">OR</button>
+        <button id="add-not" class="btn-add-gate">NOT</button>
+        <button id="add-switch" class="btn-add-gate">SWITCH</button>
       </div>
     </div>
     <!-- input checkbox id straigth line -->
@@ -28,51 +25,80 @@
         <th>Output</th>
       </tr>
     </table>
-    <button id="checkall"> Check All </button>
+    <button id="checkall">Check All</button>
 
     <section id="settings">
-    <h3>Settings</h3>
-    <input type="checkbox" id="straight-line" /><span> Draw Zigzag</span><br/>
-    <span>Speed:</span><input type="range" id="speed-slider" min="10" max="300" value="100" /> <span id="speed-label"></span>
+      <h3>Settings</h3>
+      <input type="checkbox" id="straight-line" />
+      <span>Speed:</span>
+      <input type="range" id="speed-slider" min="10" max="300" value="100" />
+      <span id="speed-label"></span>
+    </section>
+
+    <section id="gatepreview">
+      <h3>Logic Gates Preview</h3>
+      <div id="logic-and-template" class="logic-gate-div-relative">
+        <span class="logic-gate-label">AND</span>
+        <div class="input-terminals terminal-container">
+          <div class="terminal"></div>
+          <div class="terminal"></div>
+        </div>
+        <div class="output-terminals terminal-container">
+          <div class="terminal"></div>
+        </div>
+      </div>
+
+      <div id="logic-or-template" class="logic-gate-div-relative">
+        <span class="logic-gate-label">OR</span>
+        <div class="input-terminals terminal-container">
+          <div class="terminal"></div>
+          <div class="terminal"></div>
+        </div>
+        <div class="output-terminals terminal-container">
+          <div class="terminal"></div>
+        </div>
+      </div>
+
+      <div id="logic-not-template" class="logic-gate-div-relative">
+        <span class="logic-gate-label">NOT</span>
+        <div class="input-terminals terminal-container">
+          <div class="terminal"></div>
+        </div>
+        <div class="output-terminals terminal-container">
+          <div class="terminal"></div>
+        </div>
+      </div>
+
+      <div id="logic-in-template" class="logic-gate-div-relative">
+        <span class="logic-gate-label">IN</span>
+        <div class="output-terminals terminal-container">
+          <div class="terminal"></div>
+        </div>
+      </div>
+
+      <div id="logic-out-template" class="logic-gate-div-relative">
+        <span class="logic-gate-label">OUT</span>
+        <div class="input-terminals terminal-container">
+          <div class="terminal"></div>
+        </div>
+      </div>
     </section>
   </body>
 
-  <style>
-    .add_gate {
-      position: relative;
-      left: 10px;
-      top: 10px;
-      background-color: blue;
-      color: white;
-    }
-
-    #gate-deck {
-      position: absolute;
-      left: 10px;
-      bottom: 10px;
-      z-index: 999;
-    }
-
-    th,td {
-      padding: 3px 15px;
-      text-align: left;
-    }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    tr:not(:first-child):hover {
-      background-color: coral;
-    }
-    table {
-      border: 1px solid black;
-    }
-  </style>
+  <link rel="stylesheet" href="v2.css" />
 
   <script
     src="https://code.jquery.com/jquery-3.7.1.min.js"
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
     crossorigin="anonymous"
   ></script>
+
+  <script
+    src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"
+    integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
+    crossorigin="anonymous"
+  ></script>
+
   <script src="logicgate_back.js"></script>
   <script src="logicgate_front.js"></script>
 </html>
