@@ -131,6 +131,14 @@ class Gate {
       this.domElement.remove();
     }
   }
+
+  in(i) {
+    return this.inputTerminals[i];
+  }
+
+  out(i) {
+    return this.outputTerminals[i];
+  }
 }
 
 class EventManager {
@@ -155,12 +163,6 @@ class LogicGateFunctionSpec {
     this.outputCount = outputCount;
   }
 }
-
-let functionSpecAND = new LogicGateFunctionSpec("AND", (a, b) => a && b, 2, 1);
-let functionSpecOR = new LogicGateFunctionSpec("OR", (a, b) => a || b, 2, 1);
-let functionSpecNOT = new LogicGateFunctionSpec("NOT", (a) => !a, 1, 1);
-let functionSpecIN = new LogicGateFunctionSpec("IN", () => { }, 0, 1);
-let functionSpecOUT = new LogicGateFunctionSpec("OUT", () => { }, 1, 0);
 
 class World {
   constructor(eventManager) {
@@ -274,6 +276,50 @@ class World {
   getWiresBetween(terminal1, terminal2) {
     return this.wires.filter(w => (w.terminalSrc === terminal1 && w.terminalSink === terminal2) || (w.terminalSrc === terminal2 && w.terminalSink === terminal1));
   }
+}
+
+let functionSpecAND = new LogicGateFunctionSpec("AND", (a, b) => a && b, 2, 1);
+let functionSpecOR = new LogicGateFunctionSpec("OR", (a, b) => a || b, 2, 1);
+let functionSpecNOT = new LogicGateFunctionSpec("NOT", (a) => !a, 1, 1);
+let functionSpecNAND = new LogicGateFunctionSpec("NAND", (a, b) => !(a && b), 2, 1);
+let functionSpecNOR = new LogicGateFunctionSpec("NOR", (a, b) => !(a || b), 2, 1);
+let functionSpecXOR = new LogicGateFunctionSpec("XOR", (a, b) => (a || b) && !(a && b), 2, 1);
+let functionSpecIN = new LogicGateFunctionSpec("IN", () => { }, 0, 1);
+let functionSpecOUT = new LogicGateFunctionSpec("OUT", () => { }, 1, 0);
+
+class FundamentalGate {
+  static AND = {
+    name: "AND",
+    functionSpec: functionSpecAND
+  };
+  static OR = {
+    name: "OR",
+    functionSpec: functionSpecOR
+  };
+  static NOT = {
+    name: "NOT",
+    functionSpec: functionSpecNOT
+  };
+  static NAND = {
+    name: "NAND",
+    functionSpec: functionSpecNAND
+  };
+  static NOR = {
+    name: "NOR",
+    functionSpec: functionSpecNOR
+  };
+  static XOR = {
+    name: "XOR",
+    functionSpec: functionSpecXOR
+  };
+  static IN = {
+    name: "IN",
+    functionSpec: functionSpecIN
+  };
+  static OUT = {
+    name: "OUT",
+    functionSpec: functionSpecOUT
+  };
 }
 
 console.log("logicgate_back.js loaded");

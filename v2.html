@@ -33,6 +33,9 @@
       </tr>
     </table>
     <button id="checkall">Check All</button>
+    <button id="table-random">Random</button>
+    <button id="table-add-column">Add</button>
+    <button id="table-delete-column">Delete</button>
 
     <section id="settings">
       <h3>Settings</h3>
@@ -42,10 +45,11 @@
       <span id="speed-label"></span>
     </section>
 
-    <section id="gatepreview">
+    <div id="logic-gate-templates">
       <h3>Logic Gates Preview</h3>
       <div id="logic-and-template" class="logic-gate-div-relative">
         <span class="logic-gate-label">AND</span>
+        <img class="logic-gate-image" src="https://static.wikia.nocookie.net/dqw4w9wgxcq/images/0/08/Site-background-dark/revision/latest/scale-to-width-down/985?cb=20220428173233" alt="Girl in a jacket" width="50" height="50">
         <div class="input-terminals terminal-container">
           <div class="terminal"></div>
           <div class="terminal"></div>
@@ -76,6 +80,17 @@
         </div>
       </div>
 
+      <div id="logic-xor-template" class="logic-gate-div-relative">
+        <span class="logic-gate-label">XOR</span>
+        <div class="input-terminals terminal-container">
+          <div class="terminal"></div>
+          <div class="terminal"></div>
+        </div>
+        <div class="output-terminals terminal-container">
+          <div class="terminal"></div>
+        </div>
+      </div>
+
       <div id="logic-in-template" class="logic-gate-div-relative">
         <span class="logic-gate-label">IN</span>
         <div class="output-terminals terminal-container">
@@ -97,7 +112,6 @@
         <div class="output-terminals terminal-container">
         </div>
       </div>
-
     </section>
   </body>
 
@@ -117,4 +131,9 @@
 
   <script src="logicgate_back.js"></script>
   <script src="logicgate_front.js"></script>
+  <script>
+    $(document).ready(function () {
+      test();
+    });
+  </script>
 </html>
