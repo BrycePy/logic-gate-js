@@ -9,75 +9,6 @@
   <div id="logic-canvas-here"></div>
 </body>
 
-<div id="logic-gate-templates" class="logic-gate-hidden">
-  <h3>Logic Gates Preview</h3>
-  <div class="logic-gate-div-relative logic-and-template">
-    <span class="logic-gate-label">AND</span>
-    <img class="logic-gate-image" src="https://static.wikia.nocookie.net/dqw4w9wgxcq/images/0/08/Site-background-dark/revision/latest/scale-to-width-down/985?cb=20220428173233" alt="Girl in a jacket" width="50" height="50">
-    <div class="logic-gate-input-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-      <div class="logic-gate-terminal"></div>
-    </div>
-    <div class="logic-gate-output-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-    </div>
-  </div>
-
-  <div class="logic-gate-div-relative logic-or-template">
-    <span class="logic-gate-label">OR</span>
-    <div class="logic-gate-input-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-      <div class="logic-gate-terminal"></div>
-    </div>
-    <div class="logic-gate-output-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-    </div>
-  </div>
-
-  <div class="logic-gate-div-relative logic-not-template">
-    <span class="logic-gate-label">NOT</span>
-    <div class="logic-gate-input-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-    </div>
-    <div class="logic-gate-output-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-    </div>
-  </div>
-
-  <div class="logic-gate-div-relative logic-xor-template">
-    <span class="logic-gate-label">XOR</span>
-    <div class="logic-gate-input-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-      <div class="logic-gate-terminal"></div>
-    </div>
-    <div class="logic-gate-output-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-    </div>
-  </div>
-
-  <div class="logic-gate-div-relative logic-in-template">
-    <span class="logic-gate-label">IN</span>
-    <div class="logic-gate-output-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-    </div>
-  </div>
-
-  <div class="logic-gate-div-relative logic-out-template">
-    <span class="logic-gate-label">OUT</span>
-    <div class="logic-gate-input-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-    </div>
-  </div>
-
-  <div class="logic-gate-div-relative logic-world-template">
-    <span class="logic-gate-label">USER</span>
-    <div class="logic-gate-input-terminal logic-gate-terminal-container">
-    </div>
-    <div class="logic-gate-output-terminal logic-gate-terminal-container">
-    </div>
-  </div>
-</div>
-
 <link rel="stylesheet" href="logicgate.css" />
 
 <script
@@ -92,35 +23,57 @@ integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
 crossorigin="anonymous"
 ></script>
 
+<script src="logicgate_template.js"></script>
 <script src="logicgate_back.js"></script>
 <script src="logicgate_front.js"></script>
 <script>
-  $(document).ready(function(){
+  $(document).ready(async function(){
 
+    // Define div for the logic canvas
     let logicDiv = document.getElementById("logic-canvas-here");
-    logicDiv.style.width = "300px"
+    logicDiv.style.width = "400px"
     logicDiv.style.height = "300px"
 
+    // Create the logic canvas
     let mainWorld = new World();
     let logicCanvas = new LogicCanvas(mainWorld, logicDiv);
     
+    // Start the visual and world ticks
     logicCanvas.startVisualTick();
-    logicCanvas.startWorldTick();
+    logicCanvas.startWorldTick(tickPerSecond=10);
 
-    let logicGateTemplate = logicCanvas.loadTemplate("logic-gate-templates");
-    
-    let gate1 = logicCanvas.createGate("AND", logicGateTemplate, 100, 100);
-    let gate2 = logicCanvas.createGate("OR", logicGateTemplate, 200, 100);
-
-    logicCanvas.connect(gate1.out(0), gate2.in(0));
-
+    // Show/Hide Wireframe for just the LogicCanvas
+    logicCanvas.hideWireFrame();
     logicCanvas.showWireFrame();
+    // Show/Hide Wireframe for all elements
+    logicCanvas.hideWireFrame($("*"));
+    logicCanvas.showWireFrame($("*"));
 
-    // setTimeout(() => {
-    //   logicCanvas.hideWireFrame();
-    // }, 3000);
+    // Create some inputs and outputs
+    let in1 = logicCanvas.createInput();                      await sleep(100); 
+    let in2 = logicCanvas.createInput();                      await sleep(100); 
+    let in3 = logicCanvas.createInput();                      await sleep(100); 
+    let out1 = logicCanvas.createOutput();                    await sleep(100); 
+    let out2 = logicCanvas.createOutput();                    await sleep(100); 
 
 
+    // Create some gates
+    let gateAND1 = logicCanvas.createGate("AND", 120, 70);    await sleep(100); 
+    let gateOR1 = logicCanvas.createGate("OR", 220, 140);     await sleep(100); 
+
+    // connect the gates
+    logicCanvas.connect(in1.out(0), gateAND1.in(0));          await sleep(100); 
+    logicCanvas.connect(in2.out(0), gateAND1.in(1));          await sleep(100);
+    logicCanvas.connect(in3.out(0), gateOR1.in(1));           await sleep(100);
+    logicCanvas.connect(gateAND1.out(0), gateOR1.in(0));      await sleep(100);
+    logicCanvas.connect(gateAND1.out(0), out1.in(0));         await sleep(100);
+    logicCanvas.connect(gateOR1.out(0), out2.in(0));          await sleep(100);
+    
+    
+
+    await sleep(100);
+    let result = await logicCanvas.evaluate([0, 1, 1]);
+    console.log(result);
   });
 </script>
 

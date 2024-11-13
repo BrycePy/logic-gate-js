@@ -188,6 +188,19 @@ class World {
     this.domElement = domElement;
   }
 
+  setInputsState(inputs) {
+    inputs = inputs.map(i => i ? State.ON : State.OFF);
+    this.inputs.forEach((gate, i) => {
+      gate.out(0).state = inputs[i];
+    });
+  }
+
+  async evaluate(inputs) {
+    this.setInputsState(inputs);
+    await this.waitStable();
+    return this.outputs.map(g => g.in(0).state);
+  }
+
   notifyInstability() {
     this.instableCount++;
     this.stableCount = 0;
@@ -217,6 +230,15 @@ class World {
 
   isStable() {
     return this.stableCount > 3;
+  }
+
+  async waitStable() {
+    this.notifyInstability();
+    return new Promise((resolve, reject) => {
+      this.eventManager.subscribe("WORLD_STABLE", () => {
+        resolve();
+      });
+    });
   }
 
   tick() {

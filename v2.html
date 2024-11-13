@@ -44,79 +44,10 @@
       <input type="range" id="speed-slider" min="10" max="300" value="100" />
       <span id="speed-label"></span>
     </section>
-
-    <div id="logic-gate-templates">
-      <h3>Logic Gates Preview</h3>
-      <div id="logic-and-template" class="logic-gate-div-relative">
-        <span class="logic-gate-label">AND</span>
-        <img class="logic-gate-image" src="https://static.wikia.nocookie.net/dqw4w9wgxcq/images/0/08/Site-background-dark/revision/latest/scale-to-width-down/985?cb=20220428173233" alt="Girl in a jacket" width="50" height="50">
-        <div class="input-terminals terminal-container">
-          <div class="terminal"></div>
-          <div class="terminal"></div>
-        </div>
-        <div class="output-terminals terminal-container">
-          <div class="terminal"></div>
-        </div>
-      </div>
-
-      <div id="logic-or-template" class="logic-gate-div-relative">
-        <span class="logic-gate-label">OR</span>
-        <div class="input-terminals terminal-container">
-          <div class="terminal"></div>
-          <div class="terminal"></div>
-        </div>
-        <div class="output-terminals terminal-container">
-          <div class="terminal"></div>
-        </div>
-      </div>
-
-      <div id="logic-not-template" class="logic-gate-div-relative">
-        <span class="logic-gate-label">NOT</span>
-        <div class="input-terminals terminal-container">
-          <div class="terminal"></div>
-        </div>
-        <div class="output-terminals terminal-container">
-          <div class="terminal"></div>
-        </div>
-      </div>
-
-      <div id="logic-xor-template" class="logic-gate-div-relative">
-        <span class="logic-gate-label">XOR</span>
-        <div class="input-terminals terminal-container">
-          <div class="terminal"></div>
-          <div class="terminal"></div>
-        </div>
-        <div class="output-terminals terminal-container">
-          <div class="terminal"></div>
-        </div>
-      </div>
-
-      <div id="logic-in-template" class="logic-gate-div-relative">
-        <span class="logic-gate-label">IN</span>
-        <div class="output-terminals terminal-container">
-          <div class="terminal"></div>
-        </div>
-      </div>
-
-      <div id="logic-out-template" class="logic-gate-div-relative">
-        <span class="logic-gate-label">OUT</span>
-        <div class="input-terminals terminal-container">
-          <div class="terminal"></div>
-        </div>
-      </div>
-
-      <div id="logic-world-template" class="logic-gate-div-relative">
-        <span class="logic-gate-label">USER</span>
-        <div class="input-terminals terminal-container">
-        </div>
-        <div class="output-terminals terminal-container">
-        </div>
-      </div>
-    </section>
   </body>
 
   <link rel="stylesheet" href="v2.css" />
-
+  <link rel="stylesheet" href="logicgate.css" />
   <script
     src="https://code.jquery.com/jquery-3.7.1.min.js"
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
@@ -129,6 +60,7 @@
     crossorigin="anonymous"
   ></script>
 
+  <script src="logicgate_template.js"></script>
   <script src="logicgate_back.js"></script>
   <script src="logicgate_front.js"></script>
   <script>
