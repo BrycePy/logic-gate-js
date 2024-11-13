@@ -8,6 +8,7 @@ class Terminal {
     this.isSource = isSource;
     this.state = State.OFF;
     this.parent = parent;
+    this.index = -1;
 
     this.world = world;
     world.terminals.push(this);
@@ -68,8 +69,14 @@ class Wire {
     this.terminalSrc = null;
     this.terminalSink = null;
     if (this.domElement) {
-      this.domElement.remove(); 
+      this.domElement.remove();
     }
+  }
+  getState() {
+    return this.state ? State.ON : State.OFF;
+  }
+  setState(state) {
+    this.state = state ? State.ON : State.OFF;
   }
 }
 
@@ -89,6 +96,10 @@ class Gate {
     for (let i = 0; i < funcSpec.outputCount; i++) {
       this.outputTerminals.push(new Terminal(world, this, true));
     }
+
+    this.terminals().forEach((t, i) => {
+      t.index = i;
+    });
   }
   setDomElement(domElement) {
     this.domElement = domElement;
@@ -113,6 +124,28 @@ class Gate {
     return this.inputTerminals.concat(this.outputTerminals);
   }
 
+  getTerminalIndex(terminal) {
+    return this.terminals().indexOf(terminal);
+  }
+
+  setTerminalStateByIndex(index, state) {
+    this.terminals()[index].state = state;
+  }
+
+  getState() {
+    return this.terminals().map(t => t.state ? State.ON : State.OFF);
+  }
+
+  setState(states) {
+    states.forEach((state, i) => {
+      this.terminals()[i].state = state ? State.ON : State.OFF;
+    });
+  }
+
+  getTerminalStateByIndex(index) {
+    return this.terminals()[index].state;
+  }
+
   unlinkAll() {
     this.terminals().forEach(t => {
       this.world.getWiresByTerminal(t).forEach(w => w.remove());
@@ -130,6 +163,10 @@ class Gate {
     if (this.domElement) {
       this.domElement.remove();
     }
+  }
+  
+  isFundamental() {
+    return FundamentalGate.isSpecFundamental(this.funcSpec);
   }
 
   in(i) {
@@ -249,21 +286,23 @@ class World {
   }
 
   makeConnection(terminal) {
+    let result = false;
     if (!this.previousTerminal) {
       this.previousTerminal = terminal;
     } else {
       let existingWires = this.getWiresBetween(this.previousTerminal, terminal);
-      if(existingWires.length > 0) {
+      if (existingWires.length > 0) {
         existingWires.forEach(w => w.remove());
-      }else{
+      } else {
         let sink = terminal.isSource ? this.previousTerminal : terminal;
         let wirestoSink = this.getWiresByTerminal(sink);
-        if(wirestoSink.length == 0){
-          new Wire(this, this.previousTerminal, terminal);
+        if (wirestoSink.length == 0) {
+          result = new Wire(this, this.previousTerminal, terminal);
         }
       }
       this.previousTerminal = null;
     }
+    return result;
   }
 
   clearSelction() {
@@ -282,7 +321,7 @@ class World {
   removeInputGate(gate) {
     this.inputs = this.inputs.filter(g => g !== gate);
   }
-  
+
   addOutputGate(gate) {
     this.outputs.push(gate);
   }
@@ -297,6 +336,15 @@ class World {
 
   getWiresBetween(terminal1, terminal2) {
     return this.wires.filter(w => (w.terminalSrc === terminal1 && w.terminalSink === terminal2) || (w.terminalSrc === terminal2 && w.terminalSink === terminal1));
+  }
+
+  export() {
+    return {
+      inputs: this.inputs,
+      outputs: this.outputs,
+      gates: this.gates,
+      wires: this.wires
+    };
   }
 }
 
@@ -342,6 +390,9 @@ class FundamentalGate {
     name: "OUT",
     functionSpec: functionSpecOUT
   };
+  static isSpecFundamental(spec) {
+    return spec === functionSpecAND || spec === functionSpecOR || spec === functionSpecNOT || spec === functionSpecNAND || spec === functionSpecNOR || spec === functionSpecXOR || spec === functionSpecIN || spec === functionSpecOUT;
+  }
 }
 
 console.log("logicgate_back.js loaded");

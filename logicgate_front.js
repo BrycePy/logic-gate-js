@@ -1,6 +1,6 @@
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-$(function(){
+$(function () {
   let div = document.createElement("div");
   div.id = "logic-gate-default-template";
   div.style.display = "none";
@@ -281,7 +281,7 @@ class LogicCanvas {
   connect(terminal1, terminal2) {
     this.world.clearSelction();
     this.world.makeConnection(terminal1);
-    this.world.makeConnection(terminal2);
+    return this.world.makeConnection(terminal2);
   }
 
   linkWorld(template, otherWorld, x, y) {
@@ -435,7 +435,82 @@ class LogicCanvas {
   }
 
   async evaluate(inputs) {
-    return await this.world.evaluate(inputs); 
+    return await this.world.evaluate(inputs);
+  }
+
+  export() {
+    let worldData = this.world.export();
+
+    let gateExport = [];
+    worldData.gates.forEach((gate, i) => {
+      gate._exportID = i;
+      if (!gate.isFundamental()) {
+        console.error("User defined gates are not supported in export yet");
+      }
+      gateExport.push(
+        {
+          type: gate.funcSpec.name,
+          x: gate.domElement.style.left,
+          y: gate.domElement.style.top,
+          id: gate._exportID,
+          state: gate.getState(),
+          isWorldInput: this.world.inputs.includes(gate),
+          isWorldOutput: this.world.outputs.includes(gate)
+        }
+      )
+    });
+
+    let wireExport = [];
+    worldData.wires.forEach(wire => {
+      let terminal1 = wire.terminalSrc;
+      let terminal2 = wire.terminalSink;
+      let gate1 = terminal1.parent;
+      let gate2 = terminal2.parent;
+      let terminal1ID = gate1.terminals().indexOf(terminal1);
+      let terminal2ID = gate2.terminals().indexOf(terminal2);
+      wireExport.push({
+        t1: { gateID: gate1._exportID, terminalID: terminal1ID },
+        t2: { gateID: gate2._exportID, terminalID: terminal2ID },
+        state: wire.state
+      });
+    });
+    let data = {
+      gates: gateExport,
+      wires: wireExport
+    }
+    console.log(data);
+    return data;
+  }
+
+  import(data) {
+    let gates = {};
+    data.gates.forEach(gateData => {
+      let x = parseInt(gateData.x);
+      let y = parseInt(gateData.y);
+      if (gateData.isWorldInput) {
+        gates[gateData.id] = this.createInput();
+      }else if (gateData.isWorldOutput) {
+        gates[gateData.id] = this.createOutput();
+      } else {
+        gates[gateData.id] = this.createGate(gateData.type, x, y);
+      }
+      gates[gateData.id].setState(gateData.state);
+    });
+
+    data.wires.forEach(wireData => {
+      let terminal1 = gates[wireData.t1.gateID].terminals()[wireData.t1.terminalID];
+      let terminal2 = gates[wireData.t2.gateID].terminals()[wireData.t2.terminalID];
+      let wire = this.connect(terminal1, terminal2);
+      wire.setState(wireData.state);
+    });
+    this.visualTick();
+  }
+
+  clone(div) {
+    let exportData = this.export();
+    let newCanvas = new LogicCanvas(new World(), div);
+    newCanvas.import(exportData);
+    return newCanvas;
   }
 }
 

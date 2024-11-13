@@ -7,6 +7,8 @@
 </head>
 <body>
   <div id="logic-canvas-here"></div>
+  <div id="logic-canvas-here-import-export"></div>
+  <div id="logic-canvas-here-clone"></div>
 </body>
 
 <link rel="stylesheet" href="logicgate.css" />
@@ -40,7 +42,7 @@ crossorigin="anonymous"
     
     // Start the visual and world ticks
     logicCanvas.startVisualTick();
-    logicCanvas.startWorldTick(tickPerSecond=10);
+    logicCanvas.startWorldTick(tickPerSecond=20);
 
     // Show/Hide Wireframe for just the LogicCanvas
     logicCanvas.hideWireFrame();
@@ -50,30 +52,60 @@ crossorigin="anonymous"
     logicCanvas.showWireFrame($("*"));
 
     // Create some inputs and outputs
-    let in1 = logicCanvas.createInput();                      await sleep(100); 
-    let in2 = logicCanvas.createInput();                      await sleep(100); 
-    let in3 = logicCanvas.createInput();                      await sleep(100); 
-    let out1 = logicCanvas.createOutput();                    await sleep(100); 
-    let out2 = logicCanvas.createOutput();                    await sleep(100); 
-
+    let in1 = logicCanvas.createInput();                      await sleep(50); 
+    let in2 = logicCanvas.createInput();                      await sleep(50); 
+    let in3 = logicCanvas.createInput();                      await sleep(50); 
+    let out1 = logicCanvas.createOutput();                    await sleep(50); 
+    let out2 = logicCanvas.createOutput();                    await sleep(50); 
 
     // Create some gates
-    let gateAND1 = logicCanvas.createGate("AND", 120, 70);    await sleep(100); 
-    let gateOR1 = logicCanvas.createGate("OR", 220, 140);     await sleep(100); 
+    let gateAND1 = logicCanvas.createGate("AND", 120, 70);    await sleep(50); 
+    let gateOR1 = logicCanvas.createGate("OR", 220, 140);     await sleep(50); 
 
-    // connect the gates
-    logicCanvas.connect(in1.out(0), gateAND1.in(0));          await sleep(100); 
-    logicCanvas.connect(in2.out(0), gateAND1.in(1));          await sleep(100);
-    logicCanvas.connect(in3.out(0), gateOR1.in(1));           await sleep(100);
-    logicCanvas.connect(gateAND1.out(0), gateOR1.in(0));      await sleep(100);
-    logicCanvas.connect(gateAND1.out(0), out1.in(0));         await sleep(100);
-    logicCanvas.connect(gateOR1.out(0), out2.in(0));          await sleep(100);
+    // Connect the gates
+    logicCanvas.connect(in1.out(0), gateAND1.in(0));          await sleep(50); 
+    logicCanvas.connect(in2.out(0), gateAND1.in(1));          await sleep(50);
+    logicCanvas.connect(in3.out(0), gateOR1.in(1));           await sleep(50);
+    logicCanvas.connect(gateAND1.out(0), gateOR1.in(0));      await sleep(50);
+    logicCanvas.connect(gateAND1.out(0), out1.in(0));         await sleep(50);
+    logicCanvas.connect(gateOR1.out(0), out2.in(0));          await sleep(50);
     
-    
-
-    await sleep(100);
+    await sleep(50);
     let result = await logicCanvas.evaluate([0, 1, 1]);
     console.log(result);
+    
+    {
+      // Export To JSON
+      let exportData = logicCanvas.export();
+      let exportDataString = JSON.stringify(exportData);
+      console.log(exportDataString);
+  
+      let newDiv = document.getElementById("logic-canvas-here-import-export");
+      newDiv.style.width = "400px"
+      newDiv.style.height = "300px"
+      let newWorld = new World();
+      let newCanvas = new LogicCanvas(newWorld, newDiv);
+      
+      // Import From JSON
+      let importData = JSON.parse(exportDataString);
+      newCanvas.import(importData);
+
+      newCanvas.startVisualTick();
+      newCanvas.startWorldTick(tickPerSecond=10);
+    }
+
+    {
+      // Clone
+      let newDiv = document.getElementById("logic-canvas-here-clone");
+      newDiv.style.width = "400px"
+      newDiv.style.height = "300px"
+      let newCanvas2 = logicCanvas.clone(newDiv);
+
+      newCanvas2.startVisualTick();
+      newCanvas2.startWorldTick(tickPerSecond=3);
+    }
+
+
   });
 </script>
 
