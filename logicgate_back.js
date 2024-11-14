@@ -24,7 +24,9 @@ class Terminal {
     this.parent = null;
     if (this.domElement) {
       this.domElement.remove();
+      this.domElement = null;
     }
+    delete this;
   }
 }
 
@@ -70,7 +72,9 @@ class Wire {
     this.terminalSink = null;
     if (this.domElement) {
       this.domElement.remove();
+      this.domElement = null;
     }
+    delete this;
   }
   getState() {
     return this.state ? State.ON : State.OFF;
@@ -162,7 +166,9 @@ class Gate {
     this.outputTerminals.forEach(t => t.remove());
     if (this.domElement) {
       this.domElement.remove();
+      this.domElement = null;
     }
+    delete this;
   }
   
   isFundamental() {
@@ -223,6 +229,10 @@ class World {
 
   setDomElement(domElement) {
     this.domElement = domElement;
+  }
+
+  setParent(parent) {
+    this.parent = parent;
   }
 
   setInputsState(inputs) {
@@ -345,6 +355,22 @@ class World {
       gates: this.gates,
       wires: this.wires
     };
+  }
+
+  clear() {
+    this.gates.forEach(g => g.remove());
+    this.wires.forEach(w => w.remove());
+    this.terminals.forEach(t => t.remove());
+    this.inputs = [];
+    this.outputs = [];
+  }
+
+  remove() {
+    this.clear();
+    this.eventManager = null;
+    this.domElement = null;
+    this.parent = null;
+    delete this;
   }
 }
 

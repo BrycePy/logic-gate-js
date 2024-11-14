@@ -60,7 +60,7 @@ crossorigin="anonymous"
 
     // Create some gates
     let gateAND1 = logicCanvas.createGate("AND", 120, 70);    await sleep(50); 
-    let gateOR1 = logicCanvas.createGate("OR", 220, 140);     await sleep(50); 
+    let gateOR1 = logicCanvas.createGate("OR", 220, 140);     await sleep(50);
 
     // Connect the gates
     logicCanvas.connect(in1.out(0), gateAND1.in(0));          await sleep(50); 
@@ -70,7 +70,11 @@ crossorigin="anonymous"
     logicCanvas.connect(gateAND1.out(0), out1.in(0));         await sleep(50);
     logicCanvas.connect(gateOR1.out(0), out2.in(0));          await sleep(50);
     
+    // let gateNOT1 = logicCanvas.createGate("NOT", 200, 220);   await sleep(50); 
+    // logicCanvas.connect(gateNOT1.out(0), gateNOT1.in(0));     await sleep(50);
+
     await sleep(50);
+    // Evaluate the circuit
     let result = await logicCanvas.evaluate([0, 1, 1]);
     console.log(result);
     
@@ -103,6 +107,8 @@ crossorigin="anonymous"
 
       newCanvas2.startVisualTick();
       newCanvas2.startWorldTick(tickPerSecond=3);
+
+      $(newDiv).draggable();
     }
 
 

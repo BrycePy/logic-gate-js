@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="main-canvas"></div>
+</body>
+
+<link rel="stylesheet" href="logicgate.css" />
+
+<script
+src="https://code.jquery.com/jquery-3.7.1.min.js"
+integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+crossorigin="anonymous"
+></script>
+
+<script
+src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"
+integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
+crossorigin="anonymous"
+></script>
+
+<script src="logicgate_template.js"></script>
+<script src="logicgate_back.js"></script>
+<script src="logicgate_front.js"></script>
+<script>
+  $(document).ready(async function(){
+    // Define div for the logic canvas
+    let logicDiv = document.getElementById("main-canvas");
+    logicDiv.style.width = "600px"
+    logicDiv.style.height = "600px"
+
+    // Create the logic canvas
+    let mainWorld = new World();
+    let logicCanvas = new LogicCanvas(mainWorld, logicDiv);
+    
+    // Start the visual and world ticks
+    logicCanvas.startVisualTick();
+    logicCanvas.startWorldTick(tickPerSecond=20);
+
+    // Show/Hide Wireframe for just the LogicCanvas
+    logicCanvas.hideWireFrame();
+    logicCanvas.showWireFrame();
+    // Show/Hide Wireframe for all elements
+    logicCanvas.hideWireFrame($("*"));
+    logicCanvas.showWireFrame($("*"));
+
+    let textbox = document.createElement("textarea");
+    document.body.appendChild(textbox);
+
+    let loadBtn = document.createElement("button");
+    loadBtn.innerHTML = "Load";
+    document.body.appendChild(loadBtn);
+
+    loadBtn.onclick = function() {
+      let text = textbox.value;
+      let data = JSON.parse(text);
+      logicCanvas.clear();
+      logicCanvas.import(data);
+    }
+
+    let clearBtn = document.createElement("button");
+    clearBtn.innerHTML = "Clear";
+    document.body.appendChild(clearBtn);
+
+    clearBtn.onclick = function() {
+      logicCanvas.clear();
+    }
+
+
+  });
+</script>
+
+
+</html>
