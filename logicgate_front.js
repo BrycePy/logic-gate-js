@@ -198,7 +198,12 @@ class LogicCanvas {
     clone.style.left = `${x}px`;
     clone.style.top = `${y}px`;
     this.div.appendChild(clone);
-    if (draggable) $(clone).draggable();
+    if (draggable){
+      $(clone).draggable({
+        handle: ".logic-gate-drag-handle",
+      });
+      $(clone).find(".logic-gate-drag-handle").addClass("logic-gate-drag-handle-active");
+    }
 
     let inputsContainer = $(clone).find(".logic-gate-input-terminal")[0];
     let outputsContainer = $(clone).find(".logic-gate-output-terminal")[0];

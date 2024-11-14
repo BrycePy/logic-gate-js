@@ -4,12 +4,13 @@ logicGateDefaultTemplate = `
   <div class="logic-gate-div-relative logic-and-template">
     <span class="logic-gate-label">AND</span>
     <div class="logic-gate-input-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
-      <div class="logic-gate-terminal"></div>
+    <div class="logic-gate-terminal"></div>
+    <div class="logic-gate-terminal"></div>
     </div>
     <div class="logic-gate-output-terminal logic-gate-terminal-container">
-      <div class="logic-gate-terminal"></div>
+    <div class="logic-gate-terminal"></div>
     </div>
+    <div class="logic-gate-drag-handle"></div>
   </div>
 
   <div class="logic-gate-div-relative logic-or-template">
@@ -21,6 +22,7 @@ logicGateDefaultTemplate = `
     <div class="logic-gate-output-terminal logic-gate-terminal-container">
       <div class="logic-gate-terminal"></div>
     </div>
+    <div class="logic-gate-drag-handle"></div>
   </div>
 
   <div class="logic-gate-div-relative logic-not-template">
@@ -31,6 +33,7 @@ logicGateDefaultTemplate = `
     <div class="logic-gate-output-terminal logic-gate-terminal-container">
       <div class="logic-gate-terminal"></div>
     </div>
+    <div class="logic-gate-drag-handle"></div>
   </div>
 
   <div class="logic-gate-div-relative logic-xor-template">
@@ -42,6 +45,7 @@ logicGateDefaultTemplate = `
     <div class="logic-gate-output-terminal logic-gate-terminal-container">
       <div class="logic-gate-terminal"></div>
     </div>
+    <div class="logic-gate-drag-handle"></div>
   </div>
 
   <div class="logic-gate-div-relative logic-in-template">
@@ -49,6 +53,7 @@ logicGateDefaultTemplate = `
     <div class="logic-gate-output-terminal logic-gate-terminal-container">
       <div class="logic-gate-terminal"></div>
     </div>
+    <div class="logic-gate-drag-handle"></div>
   </div>
 
   <div class="logic-gate-div-relative logic-out-template">
@@ -56,14 +61,14 @@ logicGateDefaultTemplate = `
     <div class="logic-gate-input-terminal logic-gate-terminal-container">
       <div class="logic-gate-terminal"></div>
     </div>
+    <div class="logic-gate-drag-handle"></div>
   </div>
 
   <div class="logic-gate-div-relative logic-world-template">
     <span class="logic-gate-label">USER</span>
-    <div class="logic-gate-input-terminal logic-gate-terminal-container">
-    </div>
-    <div class="logic-gate-output-terminal logic-gate-terminal-container">
-    </div>
+    <div class="logic-gate-input-terminal logic-gate-terminal-container"></div>
+    <div class="logic-gate-output-terminal logic-gate-terminal-container"></div>
+    <div class="logic-gate-drag-handle"></div>
   </div>
 </div>
 `;
