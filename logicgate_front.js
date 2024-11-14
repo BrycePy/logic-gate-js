@@ -56,6 +56,7 @@ class LogicCanvas {
     this.canvas.style.height = this.div.clientHeight + "px";
     $(this.canvas).addClass("logic-gate-canvas")
     this.ctx = this.canvas.getContext("2d");
+    this.arrangeIOGates();
   }
 
   updateTerminalsDom() {
@@ -197,7 +198,7 @@ class LogicCanvas {
     clone.style.left = `${x}px`;
     clone.style.top = `${y}px`;
     this.div.appendChild(clone);
-    // if (draggable) $(clone).draggable();
+    if (draggable) $(clone).draggable();
 
     let inputsContainer = $(clone).find(".logic-gate-input-terminal")[0];
     let outputsContainer = $(clone).find(".logic-gate-output-terminal")[0];
@@ -229,10 +230,9 @@ class LogicCanvas {
       });
     });
 
-    if(removeable) {
+    if (removeable) {
       gate.domElement.addEventListener("contextmenu", (event) => {
         event.preventDefault();
-        // $(clone).draggable("destroy");
         gate.remove();
       })
     }
@@ -250,7 +250,7 @@ class LogicCanvas {
       gate.outputTerminals[0].state = !currentState;
     });
 
-    this.arangeInputOutput();
+    this.arrangeIOGates();
     return gate;
   }
 
@@ -258,16 +258,28 @@ class LogicCanvas {
     template = template || this.templates["OUT"];
     let gate = this.createGateElement(template, functionSpecOUT, 500, 100, false, false);
     this.world.addOutputGate(gate);
-    this.arangeInputOutput();
+    this.arrangeIOGates();
     return gate;
   }
 
-  arangeInputOutput() {
+  removeInput() {
+    let input = this.world.inputs.pop();
+    input.remove();
+    this.arrangeIOGates();
+  }
+
+  removeOutput() {
+    let output = this.world.outputs.pop();
+    output.remove();
+    this.arrangeIOGates();
+  }
+
+  arrangeIOGates() {
     let worldInputs = this.world.inputs;
     let worldOutputs = this.world.outputs;
     {
       let stepSize = this.canvas.height / (worldInputs.length + 1);
-      let yOffset = stepSize / 2;
+      let yOffset = stepSize - 25;
       worldInputs.forEach(gate => {
         gate.domElement.style.left = "0px";
         gate.domElement.style.right = "";
@@ -277,7 +289,7 @@ class LogicCanvas {
     }
     {
       let stepSize = this.canvas.height / (worldOutputs.length + 1);
-      let yOffset = stepSize / 2;
+      let yOffset = stepSize - 25;
       worldOutputs.forEach(gate => {
         gate.domElement.style.right = "0px";
         gate.domElement.style.left = "";
@@ -293,8 +305,8 @@ class LogicCanvas {
     return this.world.makeConnection(terminal2);
   }
 
-  linkWorld(template, otherWorld, x, y) {
-    let clone = template.cloneNode(true);
+  linkWorld(otherWorld, x, y) {
+    let clone = this.templates["WORLD"].cloneNode(true);
     let inputsContainer = $(clone).find(".logic-gate-input-terminal")[0];
     let outputsContainer = $(clone).find(".logic-gate-output-terminal")[0];
 
@@ -308,7 +320,7 @@ class LogicCanvas {
     otherWorld.outputs.forEach((i) => {
       outputsContainer.appendChild(terminalTemp.cloneNode(true));
     });
-  
+
     terminalTemp.remove();
     terminalTemp = null;
 
@@ -320,7 +332,7 @@ class LogicCanvas {
     )
     let gate = this.createGateElement(clone, functionSpecWORLD, x, y, true, false);
     gate._linkedWorld = otherWorld;
-    
+
     let linkFunction = () => {
       otherWorld.inputs.forEach((inputGate, i) => {
         inputGate.outputTerminals[0].state = gate.inputTerminals[i].state;
@@ -336,7 +348,6 @@ class LogicCanvas {
     functionSpecWORLD.func = linkFunction;
 
     gate.domElement.addEventListener("contextmenu", (event) => {
-      $(gate.domElement).draggable("destroy");
       event.preventDefault();
       let otherWorld = gate._linkedWorld;
       let otherCanvas = otherWorld.parent;
@@ -374,7 +385,7 @@ class LogicCanvas {
   }
 
   stopVisualTick() {
-    this.slowVisualTick = setInterval(() => {}, 100);
+    this.slowVisualTick = setInterval(() => { }, 100);
     this.visualTickRunning = false;
   }
 
@@ -512,11 +523,12 @@ class LogicCanvas {
     return data;
   }
 
-  import(data) {
+  load(data) {
     this.div.style.width = data.canvasSize.width + "px";
     this.div.style.height = data.canvasSize.height + "px";
     this.updateCanvas();
 
+    this.clear();
     let gates = {};
     data.gates.forEach(gateData => {
       if (gateData.type === "WORLD") {
@@ -525,12 +537,12 @@ class LogicCanvas {
         div.style.width = gateData.canvasSize.width + "px";
         div.style.height = gateData.canvasSize.height + "px";
         document.body.appendChild(div);
-        div.style.display = "none";
+        // div.style.display = "none";
         let canvas = new LogicCanvas(world, div);
-        canvas.import(gateData.worldExport);
+        canvas.load(gateData.worldExport);
         let x = parseInt(gateData.x);
         let y = parseInt(gateData.y);
-        let gate = this.linkWorld(this.templates["WORLD"], world, x, y);
+        let gate = this.linkWorld(world, x, y);
         gates[gateData.id] = gate;
         gates[gateData.id].setState(gateData.state);
       } else if (FundamentalGate[gateData.type] !== undefined) {
@@ -559,16 +571,17 @@ class LogicCanvas {
     this.visualTick();
   }
 
-  clone(div) {
-    let exportData = this.export();
-    let newCanvas = new LogicCanvas(new World(), div);
-    newCanvas.import(exportData);
+  clone() {
+    let data = this.export();
+    let newDiv = this.div.cloneNode(false);
+    let newCanvas = new LogicCanvas(new World(), newDiv);
+    newCanvas.load(data);
     return newCanvas;
   }
 
-  clear(){
+  clear() {
     this.world.gates.forEach(gate => {
-      if(gate.funcSpec.name === "WORLD") {
+      if (gate.funcSpec.name === "WORLD") {
         gate._linkedWorld.parent.remove();
       }
       gate.remove();
@@ -577,6 +590,7 @@ class LogicCanvas {
   }
 
   remove() {
+    this.clear();
     window.removeEventListener("resize", this.onResize);
     clearInterval(this.slowVisualTick);
     this.stopVisualTick();
@@ -585,5 +599,22 @@ class LogicCanvas {
     this.div = null;
     this.world.remove();
     this.world = null;
+  }
+
+  importAsGate(data, x, y) {
+    if (data instanceof LogicCanvas) { data = data.export(); }
+    let newDiv = document.createElement("div");
+    newDiv.style.width = `${data.canvasSize.width}px`;
+    newDiv.style.height = `${data.canvasSize.height}px`;
+    document.body.appendChild(newDiv);
+    let newWorld = new World();
+    let newCanvas = new LogicCanvas(newWorld, newDiv);
+    newCanvas.load(data);
+
+    x = x || 100;
+    y = y || 100;
+    let gate = this.linkWorld(newCanvas.world, x, y);
+
+    return gate;
   }
 }

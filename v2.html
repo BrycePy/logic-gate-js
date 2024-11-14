@@ -159,10 +159,10 @@
         let adderCanvas3 = createFullAdder();
         let adderCanvas4 = createFullAdder();
 
-        let adder1 = logicCanvas.linkWorld(templates["WORLD"], adderCanvas1.world, 250, 320);
-        let adder2 = logicCanvas.linkWorld(templates["WORLD"], adderCanvas2.world, 250, 230);
-        let adder3 = logicCanvas.linkWorld(templates["WORLD"], adderCanvas3.world, 250, 140);
-        let adder4 = logicCanvas.linkWorld(templates["WORLD"], adderCanvas4.world, 250, 50);
+        let adder1 = logicCanvas.linkWorld(adderCanvas1.world, 250, 320);
+        let adder2 = logicCanvas.linkWorld(adderCanvas2.world, 250, 230);
+        let adder3 = logicCanvas.linkWorld(adderCanvas3.world, 250, 140);
+        let adder4 = logicCanvas.linkWorld(adderCanvas4.world, 250, 50);
         
         let adders = [adder1, adder2, adder3, adder4];
 

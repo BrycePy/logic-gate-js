@@ -92,7 +92,7 @@ crossorigin="anonymous"
       
       // Import From JSON
       let importData = JSON.parse(exportDataString);
-      newCanvas.import(importData);
+      newCanvas.load(importData);
 
       newCanvas.startVisualTick();
       newCanvas.startWorldTick(tickPerSecond=10);
@@ -100,10 +100,11 @@ crossorigin="anonymous"
 
     {
       // Clone
-      let newDiv = document.getElementById("logic-canvas-here-clone");
-      newDiv.style.width = "400px"
-      newDiv.style.height = "300px"
-      let newCanvas2 = logicCanvas.clone(newDiv);
+      let newCanvas2 = logicCanvas.clone();
+
+      let placeholder = document.getElementById("logic-canvas-here-clone");
+      placeholder.replaceWith(newCanvas2.div);
+      newCanvas2.updateCanvas();
 
       newCanvas2.startVisualTick();
       newCanvas2.startWorldTick(tickPerSecond=3);
