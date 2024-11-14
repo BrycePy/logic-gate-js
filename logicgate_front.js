@@ -22,8 +22,15 @@ const calculateOffset = (element, parent) => {
 };
 
 const onInteract = (element, callback) => {
+  let letCallAt = 0;
+  const call = (event) => {
+    let now = Date.now();
+    if(now - letCallAt < 100) return;
+    letCallAt = now;
+    callback(event);
+  }
   ["mousedown", "touchstart"].forEach(event => {
-    element.addEventListener(event, callback);
+    element.addEventListener(event, call);
   });
 }
 
