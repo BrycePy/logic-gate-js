@@ -21,6 +21,12 @@ const calculateOffset = (element, parent) => {
   return offset;
 };
 
+const onInteract = (element, callback) => {
+  ["mousedown", "touchstart"].forEach(event => {
+    element.addEventListener(event, callback);
+  });
+}
+
 class LogicCanvas {
   constructor(world, div, templateID) {
     world.setDomElement(div);
@@ -185,6 +191,9 @@ class LogicCanvas {
 
     ctx.fillStyle = this.world.tickCount % 2 == 0 ? "#fff" : "#ccc";
     ctx.fillRect(10, 0, 10, 10);
+
+    ctx.fillStyle = this.world.previousTerminal ? "#fff" : "#ccc";
+    ctx.fillRect(20, 0, 10, 10);
   }
 
   createGateElement(template, functionSpec, x, y, draggable, removeable) {
@@ -235,9 +244,10 @@ class LogicCanvas {
     });
 
     gate.terminals().forEach(terminal => {
-      terminal.domElement.addEventListener("click", (event) => {
+      onInteract(terminal.domElement, (event) => {
         event.stopPropagation();
         this.world.makeConnection(terminal);
+        this.showConnectableTerminals();
       });
     });
 
@@ -251,12 +261,32 @@ class LogicCanvas {
     return gate;
   }
 
+  showConnectableTerminals() {
+    if(this.world.previousTerminal){
+      let otherIsSource = this.world.previousTerminal.isSource;
+      this.world.terminals.forEach(terminal => {
+        if(otherIsSource !== terminal.isSource){
+          let jqTerminal = $(terminal.domElement);
+          jqTerminal.addClass("logic-gate-terminal-highlight");
+        }
+      });
+      this.world.wires.forEach(wire => {
+        $(wire.terminalSink.domElement).removeClass("logic-gate-terminal-highlight");
+      });
+    }else{{
+      this.world.terminals.forEach(terminal => {
+        let jqTerminal = $(terminal.domElement);
+        jqTerminal.removeClass("logic-gate-terminal-highlight");
+      });
+    }}
+  }
+
   createInput(template) {
     template = template || this.templates["IN"];
     let gate = this.createGateElement(template, functionSpecIN, 0, 100, false, false);
     this.world.addInputGate(gate);
 
-    gate.domElement.addEventListener("click", () => {
+    onInteract(gate.domElement,() => {
       let currentState = gate.outputTerminals[0].state;
       gate.outputTerminals[0].state = !currentState;
     });

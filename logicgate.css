@@ -76,7 +76,7 @@
     background-color: green;
 }
 
-@keyframes logic-gate-terminalHover {
+@keyframes logic-gate-terminal-hover {
     from {
         outline: 3px solid black;
     }
@@ -85,10 +85,26 @@
     }
 }
 .logic-gate-terminal:hover {
-    animation-name: logic-gate-terminalHover;
+    animation-name: logic-gate-terminal-hover;
     animation-duration: 0.2s;
     animation-direction: alternate-reverse;
     animation-iteration-count: 10;
+}
+
+@keyframes logic-gate-terminal-highlight {
+    from {
+        outline: 1px solid black;
+    }
+    to {
+        outline: 1px solid white;
+    }
+}
+
+.logic-gate-terminal-highlight {
+    animation-name: logic-gate-terminal-highlight;
+    animation-duration: 0.5s;
+    animation-direction: alternate-reverse;
+    animation-iteration-count: infinite;
 }
 
 .logic-gate-hidden {
