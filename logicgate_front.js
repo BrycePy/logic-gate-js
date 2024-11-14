@@ -216,9 +216,9 @@ class LogicCanvas {
     this.div.appendChild(clone);
     if (draggable){
       $(clone).draggable({
-        handle: ".logic-gate-drag-handle",
+        handle: ".logic-gate-body",
       });
-      $(clone).find(".logic-gate-drag-handle").addClass("logic-gate-drag-handle-active");
+      $(clone).find(".logic-gate-body").addClass("logic-gate-body-active");
     }
 
     let inputsContainer = $(clone).find(".logic-gate-input-terminal")[0];
@@ -293,7 +293,8 @@ class LogicCanvas {
     let gate = this.createGateElement(template, functionSpecIN, 0, 100, false, false);
     this.world.addInputGate(gate);
 
-    onInteract(gate.domElement,() => {
+    let togglePad = $(gate.domElement).find(".logic-gate-body")[0];
+    onInteract(togglePad,() => {
       let currentState = gate.outputTerminals[0].state;
       gate.outputTerminals[0].state = !currentState;
     });
