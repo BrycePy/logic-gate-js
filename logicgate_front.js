@@ -216,6 +216,12 @@ class LogicCanvas {
     let gate = this.world.createLogicGate(functionSpec);
     gate.setDomElement(clone);
 
+    gate.setLabel = (text) => {
+      let div = gate.domElement;
+      let label = $(div).find(".logic-gate-label")[0];
+      label.innerHTML = text;
+    };
+
     gate.inputTerminals.forEach((terminal, i) => {
       terminal.setDomElement(inputsTerminals[i]);
     });
