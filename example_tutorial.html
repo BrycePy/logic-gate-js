@@ -186,102 +186,66 @@
       // }
       
       async function tutorialSequence(){
-    text("Tap or click the AND button to place an AND gate on the canvas.");
-    let addTest = await logicCanvasHint.addGate($("#add-and")[0], "AND");
+        text("Tap or click the AND button to place an AND gate on the canvas.");
+        let addTest = await logicCanvasHint.addGate($("#add-and")[0], "AND");
 
-    text("Right-click or drag the gate outside the canvas to remove it.");
-    await logicCanvasHint.removeGate(addTest);
+        text("Right-click or drag the gate outside the canvas to remove it.");
+        await logicCanvasHint.removeGate(addTest);
 
-    text("Next, add an OR gate to the canvas.");
-    let orGate1 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+        text("Next, add an OR gate to the canvas.");
+        let orGate1 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
 
-    text("Drag the OR gate to the highlighted area to move it.");
-    await logicCanvasHint.moveGate(orGate1, 100, 80);
+        text("Drag the OR gate to the highlighted area to move it.");
+        await logicCanvasHint.moveGate(orGate1, 100, 80);
 
-    text("To connect gates, click or tap on the output terminal of one gate, then on the input terminal of another gate.");
-    await logicCanvasHint.addWire(in1.out(0), orGate1.in(0));
-    await logicCanvasHint.addWire(in2.out(0), orGate1.in(1));
+        text("To connect gates, click or tap on the output terminal of one gate, then on the input terminal of another gate.");
+        await logicCanvasHint.addWire(in1.out(0), orGate1.in(0));
+        await logicCanvasHint.addWire(in2.out(0), orGate1.in(1));
 
-    await logicCanvasHint.addWire(orGate1.out(0), out1.in(0));
+        await logicCanvasHint.addWire(orGate1.out(0), out1.in(0));
 
-    text("Click or tap on an input source to toggle it on or off.");
-    await logicCanvasHint.toggleInput(in1);
+        text("Click or tap on an input source to toggle it on or off.");
+        await logicCanvasHint.toggleInput(in1);
 
-    text("Add another OR gate to the canvas.");
-    let orGate2 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+        text("Add another OR gate to the canvas.");
+        let orGate2 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
 
-    text("Move this OR gate to the highlighted area.");
-    await logicCanvasHint.moveGate(orGate2, 100, 230);
+        text("Move this OR gate to the highlighted area.");
+        await logicCanvasHint.moveGate(orGate2, 100, 230);
 
-    text("Connect the inputs to the new OR gate.");
-    await logicCanvasHint.addWire(in3.out(0), orGate2.in(0));
-    await logicCanvasHint.addWire(in4.out(0), orGate2.in(1));
+        text("Connect the inputs to the new OR gate.");
+        await logicCanvasHint.addWire(in3.out(0), orGate2.in(0));
+        await logicCanvasHint.addWire(in4.out(0), orGate2.in(1));
 
-    text("To remove a connection, click or tap on both ends of the wire.");
-    await logicCanvasHint.removeWire(orGate1.out(0), out1.in(0));
+        text("To remove a connection, click or tap on both ends of the wire.");
+        await logicCanvasHint.removeWire(orGate1.out(0), out1.in(0));
 
-    text("Now add one more OR gate to complete the circuit.");
-    let orGate3 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+        text("Now add one more OR gate to complete the circuit.");
+        let orGate3 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
 
-    text("Move the last OR gate to the highlighted area.");
-    await logicCanvasHint.moveGate(orGate3, 200, 155);
+        text("Move the last OR gate to the highlighted area.");
+        await logicCanvasHint.moveGate(orGate3, 200, 155);
 
-    text("Make the final connections.");
-    await logicCanvasHint.addWire(orGate1.out(0), orGate3.in(0));
-    await logicCanvasHint.addWire(orGate2.out(0), orGate3.in(1));
-    await logicCanvasHint.addWire(orGate3.out(0), out1.in(0));
+        text("Make the final connections.");
+        await logicCanvasHint.addWire(orGate1.out(0), orGate3.in(0));
+        await logicCanvasHint.addWire(orGate2.out(0), orGate3.in(1));
+        await logicCanvasHint.addWire(orGate3.out(0), out1.in(0));
 
-    text("Turn off M1. The light should go off.");
-    await logicCanvasHint.toggleInput(in1);
+        await logicCanvas.world.evaluate([1, 0, 0, 0]);
+        text("Turn off M1. The light should go off.");
+        await logicCanvasHint.toggleInput(in1);
 
-    text("At this point, if any of the inputs are active, the light should turn on. Lets try it out.");
-    await logicCanvasHint.toggleInput(in2);
-    await logicCanvasHint.toggleInput(in4);
-    await logicCanvasHint.toggleInput(in2);
-    await logicCanvasHint.toggleInput(in4);
-
-    text("Congratulations! You've completed the tutorial. Feel free to experiment with the circuit now.");
-}
-
+        text("At this point, if any of the inputs are active, the light should turn on. Lets try it out.");
+        await logicCanvasHint.toggleInput(in2);
+        await logicCanvasHint.toggleInput(in4);
+        await logicCanvasHint.toggleInput(in2);
+        await logicCanvasHint.toggleInput(in4);
+        
+        text("Congratulations! You've completed the tutorial. Feel free to experiment with the circuit now.");
+      }
+        
       
       tutorialSequence();
-
-
-      // clickHintSeries.add({ element: $("#add-and")[0] });
-
-      // eventManager.once(
-      //   "CANVAS_GATE_CREATED", // event
-      //   (gate) => { // callback
-      //     console.log("gate created", gate);
-      //     console.log(gate.in(0));
-      //     clickHintSeries.add(gate.in(0).domElement);
-      //   },
-      //   (gate) => { // condition
-      //     return gate.funcSpec.name === "AND";
-      //   }
-      // );
-
-      // clickHintSeries.add({
-      //   element: in6.out(0).domElement,
-      //   callback: () => {
-      //     let world = logicCanvas.world;
-      //     let eventManager = world.eventManager;
-      //   },
-      // });
-
-      // let clickHint = new ClickHint(testHintElement);
-
-      // onInteract(testHintElement, ()=>{
-      //   clickHint.moveTo(out1.in(0).domElement, 500);
-      // }, {once: true})
-
-      // // setTimeout(() => {
-      // //   clickHint.moveTo(out1.in(0).domElement, 500);
-      // // }, 2000);
-
-      // // setTimeout(() => {
-      // //   clickHint.remove();
-      // // }, 4000);
     });
   </script>
 </html>

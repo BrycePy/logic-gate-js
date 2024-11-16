@@ -293,7 +293,7 @@ class World {
   setInputsState(inputs) {
     inputs = inputs.map(i => i ? State.ON : State.OFF);
     this.inputs.forEach((gate, i) => {
-      gate.out(0).state = inputs[i];
+      gate.out(0).setState(inputs[i]);
     });
   }
 
