@@ -5,7 +5,7 @@ $(function () {
   div.id = "logic-gate-default-template";
   div.style.display = "none";
   document.body.appendChild(div);
-  div.setHTMLUnsafe(logicGateDefaultTemplate);
+  div.innerHTML = logicGateDefaultTemplate;
 });
 
 // const calculateOffset = (element, parent) => {
