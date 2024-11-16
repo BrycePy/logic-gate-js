@@ -90,7 +90,8 @@
 
       // Start the visual and world ticks
       logicCanvas.startVisualTick();
-      logicCanvas.startWorldTick((tickPerSecond = 60));
+      logicCanvas.startWorldTick((tickPerSecond = 30));
+      logicCanvas.world.enableAutoSleep();
 
       // bind add gate buttons
       $("#add-and").click(() => {
