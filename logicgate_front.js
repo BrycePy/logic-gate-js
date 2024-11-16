@@ -32,6 +32,17 @@ const calculateOffset = (element, parent) => {
   return offset;
 }
 
+function isInside(element1, element2) {
+  let rect1 = element1.getBoundingClientRect();
+  let rect2 = element2.getBoundingClientRect();
+  return (
+    rect1.top >= rect2.top &&
+    rect1.left >= rect2.left &&
+    rect1.bottom <= rect2.bottom &&
+    rect1.right <= rect2.right
+  );
+}
+
 // Handle User click/tap events. with throttling and double firing prevention.
 let skipMouse = 0;
 const onInteract = (element, callback, options) => {
@@ -39,7 +50,7 @@ const onInteract = (element, callback, options) => {
   const call = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    if (event.type.includes("touch")) skipMouse = 2;
+    if (event.type.includes("touch")) skipMouse = 3;
     if (event.type.includes("mouse") && skipMouse) {
       skipMouse--;
       return;
@@ -95,6 +106,14 @@ class LogicCanvas {
     this.slowVisualTick = setInterval(() => {
       this.visualTick();
     }, 100);
+
+    this.eventManager.subscribe("TERMINAL_STATE_CHANGED", (terminal) => {
+      if (terminal.state === State.ON) {
+        $(terminal.domElement).addClass("logic-gate-terminal-on");
+      } else {
+        $(terminal.domElement).removeClass("logic-gate-terminal-on");
+      }
+    });
   }
 
   updateCanvas() {
@@ -105,17 +124,6 @@ class LogicCanvas {
     $(this.canvas).addClass("logic-gate-canvas")
     this.ctx = this.canvas.getContext("2d");
     this.arrangeIOGates();
-  }
-
-  updateTerminalsDom() {
-    this.world.terminals.forEach(terminal => {
-      let jqTerminal = $(terminal.domElement);
-      if (terminal.state === State.ON) {
-        jqTerminal.addClass("logic-gate-terminal-on");
-      } else {
-        jqTerminal.removeClass("logic-gate-terminal-on");
-      }
-    });
   }
 
   clearCanvas() {
@@ -225,7 +233,7 @@ class LogicCanvas {
       ctx.stroke();
     });
 
-    if(this.world.previousTerminal){
+    if(!skipMouse && this.world.previousTerminal){
       let terminal = this.world.previousTerminal;
       let pos = calculateOffset(terminal.domElement, this.domElement);
       let jqTerminal = $(terminal.domElement);
@@ -274,6 +282,18 @@ class LogicCanvas {
         },
         stop: ()=>{
           this.eventManager.publish("CANVAS_GATE_MOVE_END", gate);
+          if(!isInside(gate.domElement, this.domElement)){
+            if(removeable){
+              gate.remove();
+            }else{
+              gate.domElement.style.transition = "all 0.1s";
+              gate.domElement.style.left = x + "px";
+              gate.domElement.style.top = y + "px";
+              setTimeout(()=>{
+                gate.domElement.style.transition = "";
+              }, 500);
+            }
+          }
         }
       });
       $(clone).find(".logic-gate-body").addClass("logic-gate-body-active");
@@ -492,7 +512,6 @@ class LogicCanvas {
   }
 
   visualTick() {
-    this.updateTerminalsDom();
     this.clearCanvas();
     this.drawGrid();
     this.drawWires();
@@ -550,7 +569,7 @@ class LogicCanvas {
     return result;
   }
 
-  createGate(fundamentalGateType, x, y) {
+  createGate(fundamentalGateType, x, y, draggable, removeable) {
     if (x === undefined) x = this.domElement.clientWidth / 2;
     if (y === undefined) y = this.domElement.clientHeight / 2;
     if (FundamentalGate[fundamentalGateType] === undefined) {
@@ -559,7 +578,7 @@ class LogicCanvas {
     }
     let gateTemplate = this.templates[fundamentalGateType];
     let gateFuncSpec = FundamentalGate[fundamentalGateType].functionSpec;
-    let gate = this.createGateElement(gateTemplate, gateFuncSpec, x, y);
+    let gate = this.createGateElement(gateTemplate, gateFuncSpec, x, y, draggable, removeable);
     return gate;
   }
 

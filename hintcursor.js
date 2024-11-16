@@ -43,17 +43,6 @@ function moveStack(element, x, y) {
   top.style.left = `${x}px`;
 }
 
-function isInside(element1, element2) {
-  let rect1 = element1.getBoundingClientRect();
-  let rect2 = element2.getBoundingClientRect();
-  return (
-    rect1.top >= rect2.top &&
-    rect1.left >= rect2.left &&
-    rect1.bottom <= rect2.bottom &&
-    rect1.right <= rect2.right
-  );
-}
-
 class CursorHint {
   constructor(element, transitionDuration) {
     this.transitionDuration = transitionDuration || 500;
@@ -379,6 +368,7 @@ class LogicCanvasHint {
           gate.domElement.style.top = `${y+dWidth/2}px`;
           gate.domElement.style.left = `${x+dHeight/2}px`;
           setTimeout(() => {
+            gate.domElement.style.transition = "";
             this.eventManager.publish("CANVAS_GATE_MOVE_END", gate);
           }, 100);
         };

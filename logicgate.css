@@ -138,3 +138,17 @@
 .logic-gate-body-active {
     cursor: move;
 }
+
+@media (max-width: 600px) {
+    .logic-gate-terminal {
+        width: 15px;
+        height: 15px;
+    }
+    .logic-gate-input-terminal {
+        left: -7px;
+    }
+    .logic-gate-output-terminal {
+        right: -7px;
+    }
+    
+}
