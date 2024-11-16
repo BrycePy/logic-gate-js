@@ -47,7 +47,7 @@ class Touchpad {
     touchCursor.style.display = "block";
     parent.appendChild(touchCursor);
 
-    let refPoint = { x: 0, y: 0 };
+    let previousPoint = { x: 0, y: 0 };
     let startPoint = { x: 0, y: 0, at: 0 };
     let lastClickTime = 0;
 
@@ -55,10 +55,10 @@ class Touchpad {
       e.preventDefault();
       e.stopPropagation();
       console.log("touch start");
-      refPoint.x = e.touches[0].clientX;
-      refPoint.y = e.touches[0].clientY;
-      startPoint.x = refPoint.x;
-      startPoint.y = refPoint.y;
+      previousPoint.x = e.touches[0].clientX;
+      previousPoint.y = e.touches[0].clientY;
+      startPoint.x = previousPoint.x;
+      startPoint.y = previousPoint.y;
       startPoint.at = Date.now();
     }, { passive: false });
 
@@ -80,8 +80,10 @@ class Touchpad {
       }
 
       let offset = $(touchCursor).offset();
-      let dx = e.touches[0].clientX - refPoint.x;
-      let dy = e.touches[0].clientY - refPoint.y;
+      let dx = e.touches[0].clientX - previousPoint.x;
+      let dy = e.touches[0].clientY - previousPoint.y;
+      previousPoint.x = e.touches[0].clientX;
+      previousPoint.y = e.touches[0].clientY;
 
       if(this.dragElement && this.onDrag) {
         this.onDrag({
@@ -99,8 +101,6 @@ class Touchpad {
       let tempY = dy * (0.5 + factor);
       offset.left += tempX;
       offset.top += tempY;
-      refPoint.x = e.touches[0].clientX;
-      refPoint.y = e.touches[0].clientY;
 
       let offsetInParent = calculateOffset(touchCursor, parent);
       offsetInParent.left += tempX;
@@ -146,8 +146,10 @@ class Touchpad {
         this.dragElement = null;
       }
       let downTime = Date.now() - startPoint.at;
-      console.log("touch end. down for " + downTime + "ms");
-      if (downTime < 300) {
+      let dx = e.changedTouches[0].clientX - startPoint.x;
+      let dy = e.changedTouches[0].clientY - startPoint.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+      if (downTime < 300 && distance < 10) {
         onTouchpadClick();
         lastClickTime = Date.now();
       }
