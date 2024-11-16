@@ -1,3 +1,34 @@
+class EventManager {
+  constructor() {
+    this.events = {};
+  }
+  subscribe(event, callback) {
+    if (!this.events[event]) this.events[event] = [];
+    this.events[event].push(callback);
+  }
+  publish(event, data) {
+    if (!this.events[event] || this.events[event].length < 1) return;
+    this.events[event].forEach(callback => callback(data));
+  }
+  unsubscribe(event, callback) {
+    if (!this.events[event]) return;
+    this.events[event] = this.events[event].filter(cb => cb !== callback);
+  }
+  once(event, callback, condition) {
+    let temp = data => {
+      if (condition && !condition(data)) return;
+      callback(data);
+      this.unsubscribe(event, temp);
+    };
+    this.subscribe(event, temp);
+  }
+  async wait(event, condition) {
+    return new Promise((resolve, reject) => {
+      this.once(event, resolve, condition);
+    });
+  }
+}
+
 class State {
   static ON = true;
   static OFF = false;
@@ -9,24 +40,39 @@ class Terminal {
     this.state = State.OFF;
     this.parent = parent;
     this.index = -1;
+    this.relatedTerminals = [];
 
     this.world = world;
     world.terminals.push(this);
+    this.world.eventManager.publish("TERMINAL_CREATED", this);
   }
 
   setDomElement(domElement) {
     this.domElement = domElement;
+    this.world.eventManager.publish("TERMINAL_DOM_SET", this);
+  }
+
+  setState(state) {
+    if (this.state !== state) {
+      this.state = state;
+      this.world.eventManager.publish("TERMINAL_STATE_CHANGED", this);
+    }
+  }
+
+  toggle(){
+    this.setState(!this.state);
   }
 
   remove() {
-    this.world.terminals = this.world.terminals.filter(t => t !== this);
-    this.world = null;
     this.parent = null;
+    this.relatedTerminals = null;
     if (this.domElement) {
       this.domElement.remove();
       this.domElement = null;
     }
-    delete this;
+    this.world.terminals = this.world.terminals.filter(t => t !== this);
+    this.world.eventManager.publish("TERMINAL_REMOVED", this);
+    this.world = null;
   }
 }
 
@@ -56,17 +102,29 @@ class Wire {
       this.terminalSink = terminal1;
     }
     this.state = State.OFF;
+
+    this.terminalSrc.relatedTerminals.push(this.terminalSink);
+    this.terminalSink.relatedTerminals.push(this.terminalSrc);
+
+    this.world.eventManager.publish("WIRE_CREATED", this);
   }
   setDomElement(domElement) {
     this.domElement = domElement;
+    this.world.eventManager.publish("WIRE_DOM_SET", this);
   }
   update() {
-    this.state = this.terminalSrc.state;
-    this.terminalSink.state = this.state;
+    if (this.state !== this.terminalSrc.state) {
+      this.world.eventManager.publish("WIRE_STATE_CHANGED", this);
+      this.state = this.terminalSrc.state;
+    }
+    this.terminalSink.setState(this.state);
   }
   remove() {
-    this.terminalSink.state = State.OFF;
+    this.terminalSrc.relatedTerminals = this.terminalSrc.relatedTerminals.filter(t => t !== this.terminalSink);
+    this.terminalSink.relatedTerminals = this.terminalSink.relatedTerminals.filter(t => t !== this.terminalSrc);
+    this.terminalSink.setState(State.OFF);
     this.world.wires = this.world.wires.filter(w => w !== this);
+    this.world.eventManager.publish("WIRE_REMOVED", this);
     this.world = null;
     this.terminalSrc = null;
     this.terminalSink = null;
@@ -80,7 +138,10 @@ class Wire {
     return this.state ? State.ON : State.OFF;
   }
   setState(state) {
-    this.state = state ? State.ON : State.OFF;
+    if (state !== this.state) {
+      this.state = state;
+      this.world.eventManager.publish("WIRE_STATE_CHANGED", this);
+    }
   }
 }
 
@@ -104,9 +165,12 @@ class Gate {
     this.terminals().forEach((t, i) => {
       t.index = i;
     });
+
+    this.world.eventManager.publish("GATE_CREATED", this);
   }
   setDomElement(domElement) {
     this.domElement = domElement;
+    this.world.eventManager.publish("GATE_DOM_SET", this);
   }
 
   update() {
@@ -117,10 +181,10 @@ class Gate {
     if (outputs === undefined) return;
     if (outputs instanceof Array) {
       outputs.forEach((output, i) => {
-        this.outputTerminals[i].state = output;
+        this.outputTerminals[i].setState(output);
       });
     } else {
-      this.outputTerminals[0].state = outputs;
+      this.outputTerminals[0].setState(outputs);
     }
   }
 
@@ -161,6 +225,7 @@ class Gate {
     this.world.inputs = this.world.inputs.filter(g => g !== this);
     this.world.outputs = this.world.outputs.filter(g => g !== this);
     this.world.gates = this.world.gates.filter(g => g !== this);
+    this.world.eventManager.publish("GATE_REMOVED", this);
     this.world = null;
     this.inputTerminals.forEach(t => t.remove());
     this.outputTerminals.forEach(t => t.remove());
@@ -170,7 +235,7 @@ class Gate {
     }
     delete this;
   }
-  
+
   isFundamental() {
     return FundamentalGate.isSpecFundamental(this.funcSpec);
   }
@@ -181,20 +246,6 @@ class Gate {
 
   out(i) {
     return this.outputTerminals[i];
-  }
-}
-
-class EventManager {
-  constructor() {
-    this.events = {};
-  }
-  subscribe(event, callback) {
-    if (!this.events[event]) this.events[event] = [];
-    this.events[event].push(callback);
-  }
-  publish(event, data) {
-    if (!this.events[event] || this.events[event].length < 1) return;
-    this.events[event].forEach(callback => callback(data));
   }
 }
 
@@ -225,14 +276,18 @@ class World {
     this.stableCount = 0;
     this.instableCount = 0;
     this.tickCount = 0;
+
+    this.eventManager.publish("WORLD_CREATED", this);
   }
 
   setDomElement(domElement) {
     this.domElement = domElement;
+    this.eventManager.publish("WORLD_DOM_SET", this);
   }
 
   setParent(parent) {
     this.parent = parent;
+    this.eventManager.publish("WORLD_PARENT_SET", this);
   }
 
   setInputsState(inputs) {
@@ -245,7 +300,9 @@ class World {
   async evaluate(inputs) {
     this.setInputsState(inputs);
     await this.waitStable();
-    return this.outputs.map(g => g.in(0).state);
+    let results = this.outputs.map(g => g.in(0).state)
+    this.eventManager.publish("WORLD_RESULT", { inputs: inputs, results: results });
+    return results;
   }
 
   notifyInstability() {
@@ -288,26 +345,56 @@ class World {
     });
   }
 
+  enableAutoSleep() { // this should be called at the root world
+    this.autoSleep = true;
+    this.sleepSince = Date.now();
+  }
+
   tick() {
+    if (this.autoSleep) {
+      let now = Date.now();
+      let dt = now - this.sleepSince;
+      let stable = this.stableCount > 10;
+      if (stable) {
+        if (dt < 100) return;
+        this.sleepSince = now;
+      }
+    }
+
     this.gates.forEach(g => g.update());
     this.wires.forEach(w => w.update());
     this.checkFinished();
     this.tickCount++;
+    this.eventManager.publish("WORLD_TICK", this);
   }
 
   makeConnection(terminal) {
     let result = false;
     if (!this.previousTerminal) {
       this.previousTerminal = terminal;
+      this.eventManager.publish("WORLD_TERMINAL_SELECTED", {
+        from: this.previousTerminal,
+        world: this
+      });
     } else {
       let existingWires = this.getWiresBetween(this.previousTerminal, terminal);
       if (existingWires.length > 0) {
         existingWires.forEach(w => w.remove());
+        this.eventManager.publish("WORLD_TERMINAL_DISCONNECTED", {
+          from: this.previousTerminal,
+          to: terminal,
+          world: this
+        });
       } else {
         let sink = terminal.isSource ? this.previousTerminal : terminal;
         let wirestoSink = this.getWiresByTerminal(sink);
         if (wirestoSink.length == 0) {
           result = new Wire(this, this.previousTerminal, terminal);
+          this.eventManager.publish("WORLD_TERMINAL_CONNECTED", {
+            from: this.previousTerminal,
+            to: terminal,
+            world: this
+          });
         }
       }
       this.previousTerminal = null;
@@ -326,18 +413,22 @@ class World {
 
   addInputGate(gate) {
     this.inputs.push(gate);
+    this.eventManager.publish("GATE_INPUT_ADDED", gate);
   }
 
   removeInputGate(gate) {
     this.inputs = this.inputs.filter(g => g !== gate);
+    this.eventManager.publish("GATE_INPUT_REMOVED", gate);
   }
 
   addOutputGate(gate) {
     this.outputs.push(gate);
+    this.eventManager.publish("GATE_OUTPUT_ADDED", gate);
   }
 
   removeOutputGate(gate) {
     this.outputs = this.outputs.filter(g => g !== gate);
+    this.eventManager.publish("GATE_OUTPUT_REMOVED", gate);
   }
 
   getWiresByTerminal(terminal) {

@@ -91,19 +91,35 @@
     animation-iteration-count: 10;
 }
 
-@keyframes logic-gate-terminal-highlight {
+@keyframes logic-gate-terminal-connectable {
     from {
-        outline: 1px solid black;
+        outline: 2px solid black;
     }
     to {
-        outline: 1px solid white;
+        outline: 2px solid white;
     }
 }
 
-.logic-gate-terminal-highlight {
-    animation-name: logic-gate-terminal-highlight;
+@keyframes logic-gate-terminal-removeable {
+    from {
+        outline: 2px solid black;
+    }
+    to {
+        outline: 2px solid red;
+    }
+}
+
+.logic-gate-terminal-connectable {
+    animation-name: logic-gate-terminal-connectable;
     animation-duration: 0.5s;
     animation-direction: alternate-reverse;
+    animation-iteration-count: infinite;
+}
+
+.logic-gate-terminal-removeable {
+    animation-name: logic-gate-terminal-removeable;
+    animation-duration: 0.5s;
+    animation-direction: alternate;
     animation-iteration-count: infinite;
 }
 

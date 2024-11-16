@@ -48,6 +48,7 @@
 
   <link rel="stylesheet" href="v2.css" />
   <link rel="stylesheet" href="logicgate.css" />
+
   <script
     src="https://code.jquery.com/jquery-3.7.1.min.js"
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
@@ -59,10 +60,12 @@
     integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
     crossorigin="anonymous"
   ></script>
-
+  <script src="lib/jquery.ui.touch-punch.min.js"></script>
+  <script src="lib/lz-string.min.js"></script>
   <script src="logicgate_template.js"></script>
   <script src="logicgate_back.js"></script>
   <script src="logicgate_front.js"></script>
+
   <script>
     $(document).ready(function () {
       function createLatch() {
@@ -209,7 +212,8 @@
         const backendTick = () => {
           logicCanvas.worldTick();
         };
-        setInterval(backendTick, 1000 / 100);
+        setInterval(backendTick, 1000 / 300);
+        logicCanvas.world.enableAutoSleep();
       }
 
       console.log("logicgate_front.js loaded");

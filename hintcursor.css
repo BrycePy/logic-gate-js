@@ -1,0 +1,102 @@
+
+@keyframes fadeInFromRight {
+    from {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes jiggle {
+    0%, 85%, 100% {
+        transform: rotate(0deg);
+    }
+    90% {
+        transform: rotate(-5deg);
+    }
+    95% {
+        transform: rotate(5deg);
+    }
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes drag {
+    0% {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    20%, 30%{
+        opacity: 1;
+        transform: translateX(0px);
+    }
+    35%{
+        opacity: 0.3;
+        transform: translateX(0px);
+    }
+    40%{
+        opacity: 0.5;
+        transform: translateX(0px);
+    }
+    75%, 80%{
+        opacity: 0.3;
+        transform: translate(-100px, -100px);
+    }
+    85%, 100%{
+        opacity: 1;
+        transform: translate(-100px, -100px);
+    }
+}
+
+@keyframes point {
+    0%, 100% {
+        transform: translate(0, 0);
+    }
+    50% {
+        transform: translate(20px, 20px);
+    }
+}
+
+.hintcursor-animation-fadeinfromright {
+    animation: fadeInFromRight 1s ease-in-out 1;
+}
+
+.hintcursor-animation-jiggle {
+    animation: jiggle 0.5s ease-out infinite;
+}
+
+.hintcursor-animation-blink {
+    animation: blink 1s ease-out infinite;
+}
+
+.hintcursor-animation-fadeout {
+    opacity: 0;
+    animation: fadeOut 0.5s ease-in 1;
+}
+
+.hintcursor-animation-drag {
+    animation: drag 5s ease-in-out infinite;
+}
+
+.hintcursor-animation-point {
+    animation: point 2s ease-in-out infinite;
+}

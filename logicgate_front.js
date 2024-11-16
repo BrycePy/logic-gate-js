@@ -8,29 +8,49 @@ $(function () {
   div.setHTMLUnsafe(logicGateDefaultTemplate);
 });
 
+// const calculateOffset = (element, parent) => {
+//   let offset = { top: 0, left: 0 };
+//   while (element !== parent) {
+//     if (!element) {
+//       return offset;
+//     }
+//     offset.top += element.offsetTop;
+//     offset.left += element.offsetLeft;
+//     element = element.parentElement;
+//   }
+//   return offset;
+// };
+
 const calculateOffset = (element, parent) => {
   let offset = { top: 0, left: 0 };
-  while (element !== parent) {
-    if (!element) {
-      return offset;
-    }
-    offset.top += element.offsetTop;
-    offset.left += element.offsetLeft;
-    element = element.parentElement;
-  }
+  if(!element) return offset;
+  offset.top += $(element).offset().top;
+  offset.left += $(element).offset().left;
+  if(!parent) return offset;
+  offset.top -= $(parent).offset().top;
+  offset.left -= $(parent).offset().left;
   return offset;
-};
+}
 
-const onInteract = (element, callback) => {
-  let letCallAt = 0;
+// Handle User click/tap events. with throttling and double firing prevention.
+let skipMouse = 0;
+const onInteract = (element, callback, options) => {
+  let lastCallAt = 0;
   const call = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type.includes("touch")) skipMouse = 2;
+    if (event.type.includes("mouse") && skipMouse) {
+      skipMouse--;
+      return;
+    }
     let now = Date.now();
-    if(now - letCallAt < 100) return;
-    letCallAt = now;
+    if (now - lastCallAt < 100) return;
+    lastCallAt = now;
     callback(event);
   }
   ["mousedown", "touchstart"].forEach(event => {
-    element.addEventListener(event, call);
+    element.addEventListener(event, call, options);
   });
 }
 
@@ -39,13 +59,14 @@ class LogicCanvas {
     world.setDomElement(div);
     world.setParent(this);
     this.world = world;
-    this.div = div;
+    this.domElement = div;
+    this.eventManager = this.world.eventManager;
     this.loadTemplate(templateID || "logic-gate-templates");
 
     $(div).addClass("logic-gate-div");
 
     this.canvas = document.createElement("canvas");
-    this.div.appendChild(this.canvas);
+    this.domElement.appendChild(this.canvas);
     this.updateCanvas();
     this.clearCanvas();
     this.drawGrid();
@@ -54,8 +75,22 @@ class LogicCanvas {
       this.updateCanvas();
       this.visualTick();
     }
-
     window.addEventListener("resize", this.onResize);
+
+    this.mousePos = { x: 0, y: 0 };
+    this.onMouseMove = (event) => {
+      let bounds = this.domElement.getBoundingClientRect();
+      this.mousePos = {
+        x: event.clientX - bounds.left,
+        y: event.clientY - bounds.top
+      };
+    }
+    this.domElement.addEventListener("mousemove", this.onMouseMove, true);
+
+    this.canvas.addEventListener("click", () => {
+      this.world.clearSelction();
+      this.showConnectableTerminals();
+    });
 
     this.slowVisualTick = setInterval(() => {
       this.visualTick();
@@ -63,10 +98,10 @@ class LogicCanvas {
   }
 
   updateCanvas() {
-    this.canvas.width = this.div.clientWidth;
-    this.canvas.height = this.div.clientHeight;
-    this.canvas.style.width = this.div.clientWidth + "px";
-    this.canvas.style.height = this.div.clientHeight + "px";
+    this.canvas.width = this.domElement.clientWidth;
+    this.canvas.height = this.domElement.clientHeight;
+    this.canvas.style.width = this.domElement.clientWidth + "px";
+    this.canvas.style.height = this.domElement.clientHeight + "px";
     $(this.canvas).addClass("logic-gate-canvas")
     this.ctx = this.canvas.getContext("2d");
     this.arrangeIOGates();
@@ -115,8 +150,8 @@ class LogicCanvas {
       let jqTerminal1 = $(terminal1.domElement);
       let jqTerminal2 = $(terminal2.domElement);
 
-      let srcPos = calculateOffset(terminal1.domElement, this.div);
-      let sinkPos = calculateOffset(terminal2.domElement, this.div);
+      let srcPos = calculateOffset(terminal1.domElement, this.domElement);
+      let sinkPos = calculateOffset(terminal2.domElement, this.domElement);
 
       srcPos.top += jqTerminal1.height() / 2;
       srcPos.left += jqTerminal1.width() / 2;
@@ -189,6 +224,19 @@ class LogicCanvas {
       }
       ctx.stroke();
     });
+
+    if(this.world.previousTerminal){
+      let terminal = this.world.previousTerminal;
+      let pos = calculateOffset(terminal.domElement, this.domElement);
+      let jqTerminal = $(terminal.domElement);
+      pos.top += jqTerminal.height() / 2;
+      pos.left += jqTerminal.width() / 2;
+      ctx.beginPath();
+      ctx.strokeStyle = "red";
+      ctx.moveTo(pos.left, pos.top);
+      ctx.lineTo(this.mousePos.x, this.mousePos.y);
+      ctx.stroke();
+    }
   }
 
   drawIndicators() {
@@ -201,6 +249,9 @@ class LogicCanvas {
 
     ctx.fillStyle = this.world.previousTerminal ? "#fff" : "#ccc";
     ctx.fillRect(20, 0, 10, 10);
+
+    ctx.fillStyle = skipMouse ? "#fff" : "#ccc";
+    ctx.fillRect(30, 0, 10, 10);
   }
 
   createGateElement(template, functionSpec, x, y, draggable, removeable) {
@@ -213,10 +264,16 @@ class LogicCanvas {
     $(clone).addClass("logic-gate-div-absolute");
     clone.style.left = `${x}px`;
     clone.style.top = `${y}px`;
-    this.div.appendChild(clone);
-    if (draggable){
+    this.domElement.appendChild(clone);
+    if (draggable) {
       $(clone).draggable({
         handle: ".logic-gate-body",
+        start: () => {
+          this.eventManager.publish("CANVAS_GATE_MOVE_START", gate);
+        },
+        stop: ()=>{
+          this.eventManager.publish("CANVAS_GATE_MOVE_END", gate);
+        }
       });
       $(clone).find(".logic-gate-body").addClass("logic-gate-body-active");
     }
@@ -260,32 +317,44 @@ class LogicCanvas {
 
     if (removeable) {
       gate.domElement.addEventListener("contextmenu", (event) => {
+        this.eventManager.publish("CANVAS_GATE_REMOVED", gate);
         event.preventDefault();
         gate.remove();
       })
     }
 
+    this.eventManager.publish("CANVAS_GATE_CREATED", gate);
     return gate;
   }
 
   showConnectableTerminals() {
-    if(this.world.previousTerminal){
-      let otherIsSource = this.world.previousTerminal.isSource;
+    let selectedTerminal = this.world.previousTerminal;
+    let selectedIsSource = selectedTerminal?.isSource;
+
+    if (selectedTerminal) {
+      selectedTerminal.relatedTerminals.forEach(terminal => {
+        let jqTerminal = $(terminal.domElement);
+        jqTerminal.addClass("logic-gate-terminal-removeable");
+      });
+      if (!selectedIsSource && selectedTerminal.relatedTerminals.length > 0) return;
       this.world.terminals.forEach(terminal => {
-        if(otherIsSource !== terminal.isSource){
+        if (selectedIsSource !== terminal.isSource) {
           let jqTerminal = $(terminal.domElement);
-          jqTerminal.addClass("logic-gate-terminal-highlight");
+          jqTerminal.addClass("logic-gate-terminal-connectable");
         }
       });
       this.world.wires.forEach(wire => {
-        $(wire.terminalSink.domElement).removeClass("logic-gate-terminal-highlight");
+        $(wire.terminalSink.domElement).removeClass("logic-gate-terminal-connectable");
       });
-    }else{{
-      this.world.terminals.forEach(terminal => {
-        let jqTerminal = $(terminal.domElement);
-        jqTerminal.removeClass("logic-gate-terminal-highlight");
-      });
-    }}
+    } else {
+      {
+        this.world.terminals.forEach(terminal => {
+          let jqTerminal = $(terminal.domElement);
+          jqTerminal.removeClass("logic-gate-terminal-connectable");
+          jqTerminal.removeClass("logic-gate-terminal-removeable");
+        });
+      }
+    }
   }
 
   createInput(template) {
@@ -294,9 +363,8 @@ class LogicCanvas {
     this.world.addInputGate(gate);
 
     let togglePad = $(gate.domElement).find(".logic-gate-body")[0];
-    onInteract(togglePad,() => {
-      let currentState = gate.outputTerminals[0].state;
-      gate.outputTerminals[0].state = !currentState;
+    onInteract(togglePad, () => {
+      gate.out(0).toggle()
     });
 
     this.arrangeIOGates();
@@ -370,6 +438,14 @@ class LogicCanvas {
       outputsContainer.appendChild(terminalTemp.cloneNode(true));
     });
 
+
+    let maxTerminalCount = Math.max(otherWorld.inputs.length, otherWorld.outputs.length);
+    let extraHeight = (maxTerminalCount - 3) * 15;
+    if (extraHeight > 0) {
+      let currentHeight = $(clone).height();
+      $(clone).height(currentHeight + extraHeight);
+    }
+
     terminalTemp.remove();
     terminalTemp = null;
 
@@ -384,10 +460,10 @@ class LogicCanvas {
 
     let linkFunction = () => {
       otherWorld.inputs.forEach((inputGate, i) => {
-        inputGate.outputTerminals[0].state = gate.inputTerminals[i].state;
+        inputGate.outputTerminals[0].setState(gate.inputTerminals[i].state);
       });
       otherWorld.outputs.forEach((outputGate, i) => {
-        gate.outputTerminals[i].state = outputGate.inputTerminals[0].state;
+        gate.outputTerminals[i].setState(outputGate.inputTerminals[0].state);
       });
       otherWorld.tick();
       if (!otherWorld.isStable()) {
@@ -474,6 +550,8 @@ class LogicCanvas {
   }
 
   createGate(fundamentalGateType, x, y) {
+    if (x === undefined) x = this.domElement.clientWidth / 2;
+    if (y === undefined) y = this.domElement.clientHeight / 2;
     if (FundamentalGate[fundamentalGateType] === undefined) {
       console.error("Invalid fundamental gate type");
       return
@@ -485,7 +563,7 @@ class LogicCanvas {
   }
 
   showWireFrame(e) {
-    e = e === undefined ? this.div : e;
+    e = e === undefined ? this.domElement : e;
     let children = $(e).children();
     for (let i = 0; i < children.length; i++) {
       let child = children[i];
@@ -495,7 +573,7 @@ class LogicCanvas {
   }
 
   hideWireFrame(e) {
-    e = e === undefined ? this.div : e;
+    e = e === undefined ? this.domElement : e;
     let children = $(e).find(".show-wireframe");
     for (let i = 0; i < children.length; i++) {
       let child = children[i];
@@ -564,8 +642,8 @@ class LogicCanvas {
       gates: gateExport,
       wires: wireExport,
       canvasSize: {
-        width: this.div.clientWidth,
-        height: this.div.clientHeight
+        width: this.domElement.clientWidth,
+        height: this.domElement.clientHeight
       }
     }
     // console.log(data);
@@ -573,8 +651,8 @@ class LogicCanvas {
   }
 
   load(data) {
-    this.div.style.width = data.canvasSize.width + "px";
-    this.div.style.height = data.canvasSize.height + "px";
+    this.domElement.style.width = data.canvasSize.width + "px";
+    this.domElement.style.height = data.canvasSize.height + "px";
     this.updateCanvas();
 
     this.clear();
@@ -622,7 +700,7 @@ class LogicCanvas {
 
   clone() {
     let data = this.export();
-    let newDiv = this.div.cloneNode(false);
+    let newDiv = this.domElement.cloneNode(false);
     let newCanvas = new LogicCanvas(new World(), newDiv);
     newCanvas.load(data);
     return newCanvas;
@@ -644,8 +722,8 @@ class LogicCanvas {
     clearInterval(this.slowVisualTick);
     this.stopVisualTick();
     this.stopWorldTick();
-    this.div.remove();
-    this.div = null;
+    this.domElement.remove();
+    this.domElement = null;
     this.world.remove();
     this.world = null;
   }

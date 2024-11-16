@@ -72,34 +72,3 @@ logicGateDefaultTemplate = `
   </div>
 </div>
 `;
-
-
-let tt = "whatever";
-
-const ttWrapperFunc = () => {
-  return tt
-}
-
-const exampleFunc = () => {
-  tt = ""
-  for(let i=0; i<100; i++) {
-    tt += `i = ${i}`
-  }
-
-  return tt
-}
-
-const apptt = (a, b, tt) => {
-  console.log("I got a: ", a)
-  console.log("I got b: ", b)
-  console.log("I got tt: ", tt)
-}
-
-const appfunc = (a, b, func) => {
-  console.log("I got a: ", a)
-  console.log("I got b: ", b)
-  console.log("I got tt: ", func())
-}
-
-// apptt(1, 2, tt)
-appfunc(1, 2, exampleFunc)

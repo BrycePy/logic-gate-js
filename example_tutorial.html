@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="logic-canvas-here"></div>
+
+    <div id="gate-deck" class="d-flex gap-2 justify-content-center py-2">
+      <button id="add-and" class="btn btn-secondary rounded-pill px-3">
+        AND
+      </button>
+      <button id="add-or" class="btn btn-secondary rounded-pill px-3">
+        OR
+      </button>
+      <button id="add-not" class="btn btn-secondary rounded-pill px-3">
+        NOT
+      </button>
+      <button id="skip" class="btn btn-primary rounded-pill px-3">
+        Skip
+      </button>
+    </div>
+
+    <p id="message">...</p>
+  </body>
+
+  <style>
+    #logic-canvas-here {
+      width: 500px;
+      height: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 20px;
+      border: 1px solid black;
+    }
+
+    #message {
+      text-align: center;
+      width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid black;
+      border-radius: 20px;
+      font-size: 22px;
+    }
+  </style>
+
+  <link rel="stylesheet" href="logicgate.css" />
+  <link rel="stylesheet" href="hintcursor.css" />
+
+  <!-- import bootstrap 5.3 -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+  />
+
+  <!-- import jquery 3.7.1 -->
+  <script
+    src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+    crossorigin="anonymous"
+  ></script>
+  <script
+    src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"
+    integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
+    crossorigin="anonymous"
+  ></script>
+  <!-- jquery ui touch fixer -->
+  <script src="lib/jquery.ui.touch-punch.min.js"></script>
+  <script src="lib/lz-string.min.js"></script>
+  <script src="logicgate_template.js"></script>
+  <script src="logicgate_back.js"></script>
+  <script src="logicgate_front.js"></script>
+  <script src="hintcursor.js"></script>
+
+  <script>
+    $(document).ready(async function () {
+      // Define div for the logic canvas
+      let logicDiv = document.getElementById("logic-canvas-here");
+
+      // Create the logic canvas
+      let mainWorld = new World();
+      let logicCanvas = new LogicCanvas(mainWorld, logicDiv);
+
+      // Start the visual and world ticks
+      logicCanvas.startVisualTick();
+      logicCanvas.startWorldTick((tickPerSecond = 60));
+
+      // bind add gate buttons
+      $("#add-and").click(() => {
+        logicCanvas.createGate("AND");
+      });
+
+      $("#add-or").click(() => {
+        logicCanvas.createGate("OR");
+      });
+
+      $("#add-not").click(() => {
+        logicCanvas.createGate("NOT");
+      });
+
+      // Create some inputs and outputs
+      let in1 = logicCanvas.createInput();
+      let in2 = logicCanvas.createInput();
+      let in3 = logicCanvas.createInput();
+      let in4 = logicCanvas.createInput();
+      let out1 = logicCanvas.createOutput();
+
+      in1.setLabel("M1");
+      in2.setLabel("M2");
+      in3.setLabel("M3");
+      in4.setLabel("M4");
+      out1.setLabel("Light");
+
+      logicCanvas.showWireFrame($("*"));
+
+      let logicCanvasHint = new LogicCanvasHint(logicCanvas);
+      let eventManager = logicCanvas.eventManager;
+      let text = (message) => {
+        $("#message").text(message);
+      };
+
+      $("#skip").click(() => {
+        logicCanvasHint.skip();
+      });
+      
+      // async function tutorialSequence(){
+      //   text("Click/Tap on the AND button to add an AND gate to the canvas.");
+      //   let addTest = await logicCanvasHint.addGate($("#add-and")[0], "AND");
+
+      //   text("Right click(PC) or long press(Mobile) on the gate to remove it.");
+      //   await logicCanvasHint.removeGate(addTest);
+
+      //   text("Now try adding an OR gate.");
+      //   let orGate1 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+
+      //   text("You can move the gate by dragging it. Put the OR gate in the highlighted area.");
+      //   await logicCanvasHint.moveGate(orGate1, 100, 50);
+
+      //   text("To make a connection, click/tap on the output of a gate and then click on the input of another gate.");
+      //   await logicCanvasHint.addWire(in1.out(0), orGate1.in(0));
+      //   await logicCanvasHint.addWire(in2.out(0), orGate1.in(1));
+
+      //   await logicCanvasHint.addWire(orGate1.out(0), out1.in(0));
+
+      //   text("The source terminal can be toggled on/off by clicking/tapping on the gate.");
+      //   await logicCanvasHint.toggleInput(in1);
+
+      //   text("Let's add another OR gate.");
+      //   let orGate2 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+
+      //   text("Move the gate to the highlighted area.");
+      //   await logicCanvasHint.moveGate(orGate2, 100, 150);
+
+      //   text("Connect the inputs to the OR gate.");
+      //   await logicCanvasHint.addWire(in3.out(0), orGate2.in(0));
+      //   await logicCanvasHint.addWire(in4.out(0), orGate2.in(1));
+
+      //   text("A connection can be removed by clicking/tapping on both ends of the wire.");
+      //   await logicCanvasHint.removeWire(orGate1.out(0), out1.in(0));
+
+      //   text("Let's finish the circuit by adding another OR gate.");
+      //   let orGate3 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+      //   text("Move the gate to the highlighted area.");
+      //   await logicCanvasHint.moveGate(orGate3, 200, 100);
+
+      //   text("A few more connections to make.");
+      //   await logicCanvasHint.addWire(orGate1.out(0), orGate3.in(0));
+      //   await logicCanvasHint.addWire(orGate2.out(0), orGate3.in(1));
+      //   await logicCanvasHint.addWire(orGate3.out(0), out1.in(0));
+
+      //   text("Turn off M1, the light should turn off.");
+      //   await logicCanvasHint.toggleInput(in1);
+
+      //   text("hurray! You have completed the tutorial. Now you can play with the circuit.");
+
+      //   // await logicCanvasHint.removeWire(in1.out(0), orGate.in(0));
+      //   // await logicCanvasHint.removeGate(orGate);
+      // }
+      
+      async function tutorialSequence(){
+    text("Tap or click the AND button to place an AND gate on the canvas.");
+    let addTest = await logicCanvasHint.addGate($("#add-and")[0], "AND");
+
+    text("Right-click (on PC) or long-press (on mobile) the gate to remove it.");
+    await logicCanvasHint.removeGate(addTest);
+
+    text("Next, add an OR gate to the canvas.");
+    let orGate1 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+
+    text("Drag the OR gate to the highlighted area to move it.");
+    await logicCanvasHint.moveGate(orGate1, 100, 80);
+
+    text("To connect gates, click or tap on the output terminal of one gate, then on the input terminal of another gate.");
+    await logicCanvasHint.addWire(in1.out(0), orGate1.in(0));
+    await logicCanvasHint.addWire(in2.out(0), orGate1.in(1));
+
+    await logicCanvasHint.addWire(orGate1.out(0), out1.in(0));
+
+    text("Click or tap on an input source to toggle it on or off.");
+    await logicCanvasHint.toggleInput(in1);
+
+    text("Add another OR gate to the canvas.");
+    let orGate2 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+
+    text("Move this OR gate to the highlighted area.");
+    await logicCanvasHint.moveGate(orGate2, 100, 230);
+
+    text("Connect the inputs to the new OR gate.");
+    await logicCanvasHint.addWire(in3.out(0), orGate2.in(0));
+    await logicCanvasHint.addWire(in4.out(0), orGate2.in(1));
+
+    text("To remove a connection, click or tap on both ends of the wire.");
+    await logicCanvasHint.removeWire(orGate1.out(0), out1.in(0));
+
+    text("Now add one more OR gate to complete the circuit.");
+    let orGate3 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
+
+    text("Move the last OR gate to the highlighted area.");
+    await logicCanvasHint.moveGate(orGate3, 200, 155);
+
+    text("Make the final connections.");
+    await logicCanvasHint.addWire(orGate1.out(0), orGate3.in(0));
+    await logicCanvasHint.addWire(orGate2.out(0), orGate3.in(1));
+    await logicCanvasHint.addWire(orGate3.out(0), out1.in(0));
+
+    text("Turn off M1. The light should go off.");
+    await logicCanvasHint.toggleInput(in1);
+
+    text("At this point, if any of the inputs are active, the light should turn on. Lets try it out.");
+    await logicCanvasHint.toggleInput(in2);
+    await logicCanvasHint.toggleInput(in4);
+    await logicCanvasHint.toggleInput(in2);
+    await logicCanvasHint.toggleInput(in4);
+
+    text("Congratulations! You've completed the tutorial. Feel free to experiment with the circuit now.");
+}
+
+      
+      tutorialSequence();
+
+
+      // clickHintSeries.add({ element: $("#add-and")[0] });
+
+      // eventManager.once(
+      //   "CANVAS_GATE_CREATED", // event
+      //   (gate) => { // callback
+      //     console.log("gate created", gate);
+      //     console.log(gate.in(0));
+      //     clickHintSeries.add(gate.in(0).domElement);
+      //   },
+      //   (gate) => { // condition
+      //     return gate.funcSpec.name === "AND";
+      //   }
+      // );
+
+      // clickHintSeries.add({
+      //   element: in6.out(0).domElement,
+      //   callback: () => {
+      //     let world = logicCanvas.world;
+      //     let eventManager = world.eventManager;
+      //   },
+      // });
+
+      // let clickHint = new ClickHint(testHintElement);
+
+      // onInteract(testHintElement, ()=>{
+      //   clickHint.moveTo(out1.in(0).domElement, 500);
+      // }, {once: true})
+
+      // // setTimeout(() => {
+      // //   clickHint.moveTo(out1.in(0).domElement, 500);
+      // // }, 2000);
+
+      // // setTimeout(() => {
+      // //   clickHint.remove();
+      // // }, 4000);
+    });
+  </script>
+</html>

@@ -21,6 +21,7 @@
       <button id="dec-height" class="add_gate">-H</button>
     </div>
     <textarea id="textIO"></textarea>
+    <textarea id="textIO2"></textarea>
     <button id="load">Load</button>
     <button id="load-as-function">Load as Function</button>
     <button id="export">Export</button>
@@ -40,10 +41,12 @@
     integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
     crossorigin="anonymous"
   ></script>
-
+  <script src="lib/jquery.ui.touch-punch.min.js"></script>
+  <script src="lib/lz-string.min.js"></script>
   <script src="logicgate_template.js"></script>
   <script src="logicgate_back.js"></script>
   <script src="logicgate_front.js"></script>
+
   <script>
     $(document).ready(async function () {
       // Define div for the logic canvas
@@ -56,7 +59,7 @@
       
       // Start the visual and world ticks
       logicCanvas.startVisualTick();
-      logicCanvas.startWorldTick((tickPerSecond = 100));
+      logicCanvas.startWorldTick((tickPerSecond = 300));
 
       // Show/Hide Wireframe for just the LogicCanvas
       logicCanvas.hideWireFrame();
@@ -66,6 +69,7 @@
       logicCanvas.showWireFrame($("*"));
 
       let textbox = document.getElementById("textIO");
+      let textbox2 = document.getElementById("textIO2");
 
       $("#load").click(function () {
         let text = textbox.value;
@@ -86,6 +90,13 @@
         let exportString = JSON.stringify(exportRaw);
         console.log(exportString);
         textbox.value = exportString;
+
+        let compressed = LZString.compressToBase64(exportString);
+        console.log(compressed);
+        textbox2.value = compressed;
+
+        let compressionRatio = exportString.length / compressed.length;
+        console.log(compressionRatio);
       });
 
       $("#clear").click(function () {
