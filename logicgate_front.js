@@ -90,7 +90,7 @@ class LogicCanvas {
 
     this.mousePos = { x: 0, y: 0 };
     this.onMouseMove = (event) => {
-      console.log("mousemove", event);
+      // console.log("mousemove", event);
       let bounds = this.domElement.getBoundingClientRect();
       this.mousePos = {
         x: event.clientX - bounds.left,

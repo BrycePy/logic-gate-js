@@ -7,7 +7,6 @@
   </head>
   <body>
     <div id="logic-canvas-here">
-      <div id="touch-cursor"></div>
     </div>
 
     <div id="gate-deck" class="d-flex gap-2 justify-content-center py-2">
@@ -21,6 +20,7 @@
         NOT
       </button>
       <button id="skip" class="btn btn-primary rounded-pill px-3">Skip</button>
+      <buttom id="startTouchpad" class="btn btn-primary rounded-pill px-3">TouchPad</buttom>
     </div>
 
     <p id="message">...</p>
@@ -47,19 +47,6 @@
       border: 1px solid black;
       border-radius: 20px;
       font-size: 22px;
-    }
-
-    #touch-cursor {
-      position: absolute;
-      left: 50px;
-      top: 50px;
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      border-radius: 50%;
-      z-index: 1000;
-      cursor: none;
-      pointer-events: none;
     }
   </style>
 
@@ -92,64 +79,18 @@
   <script src="logicgate_back.js"></script>
   <script src="logicgate_front.js"></script>
   <script src="hintcursor.js"></script>
+  <script src="touchpad.js"></script>
 
   <script>
-    let touchCursor = document.getElementById("touch-cursor");
-    let touchCursorParent = touchCursor.parentElement;
-    let refPoint = { x: 0, y: 0 };
-    let startPoint = { x: 0, y: 0, at: 0};
-    
-    touchCursorParent.addEventListener("touchstart", (e) => {
-      console.log("touch start");
-      refPoint.x = e.touches[0].clientX;
-      refPoint.y = e.touches[0].clientY;
-      startPoint.x = refPoint.x;
-      startPoint.y = refPoint.y;
-      startPoint.at = Date.now();
-    });
-
-    touchCursorParent.addEventListener("touchmove", (e) => {
-      event.preventDefault();
-      event.stopPropagation();
-      console.log(e);
-      let offset = $(touchCursor).offset();
-      let dx = e.touches[0].clientX - refPoint.x;
-      let dy = e.touches[0].clientY - refPoint.y;
-      offset.left += dx;
-      offset.top += dy;
-      refPoint.x = e.touches[0].clientX;
-      refPoint.y = e.touches[0].clientY;
-      $(touchCursor).offset(offset);
-
-      touchCursorParent.dispatchEvent(new MouseEvent("mousemove", {
-        bubbles: true,
-        cancelable: true,
-        clientX: offset.left + $(touchCursor).width() / 2,
-        clientY: offset.top + $(touchCursor).height() / 2
-      }));
-    }, {passive: false});
-
-    touchCursorParent.addEventListener("touchend", () => {
-      let downTime = Date.now() - startPoint.at;
-      let cursorOffset = $(touchCursor).offset();
-      let x = cursorOffset.left;
-      let y = cursorOffset.top;
-      x += $(touchCursor).width() / 2;
-      y += $(touchCursor).height() / 2;
-      console.log("touch end. down for " + downTime + "ms");
-      if(downTime < 300) {
-        touchCursor.style.backgroundColor = "green";
-        setTimeout(() => {
-          touchCursor.style.backgroundColor = "red";
-        }, 100);
-        let e = document.elementFromPoint(x, y);
+    $("#startTouchpad").click(() => {
+      let touchpad = new Touchpad($("#logic-canvas-here")[0]);
+      touchpad.onDrag = (e)=>{
+        let dx = e.dx;
+        let dy = e.dy;
         console.log(e);
-        e.dispatchEvent(new Event("touchstart", {bubbles: false, cancelable: true}));
-        e.dispatchEvent(new Event("touchend", {bubbles: false, cancelable: true}));
       }
+      $("#startTouchpad")[0].remove();
     });
-    
-
   </script>
 
   <script>
