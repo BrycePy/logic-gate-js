@@ -268,6 +268,7 @@ class LogicCanvas {
     if (draggable) {
       $(clone).draggable({
         handle: ".logic-gate-body",
+        distance: 15,
         start: () => {
           this.eventManager.publish("CANVAS_GATE_MOVE_START", gate);
         },
