@@ -273,6 +273,21 @@ class LogicCanvas {
     clone.style.left = `${x}px`;
     clone.style.top = `${y}px`;
     this.domElement.appendChild(clone);
+    
+    let gate = this.world.createLogicGate(functionSpec);
+    gate.setDomElement(clone);
+    gate._removeable = removeable;
+    gate._draggable = draggable;
+
+    function moveToOrigin() {
+      gate.domElement.style.transition = "all 0.1s";
+      gate.domElement.style.left = x + "px";
+      gate.domElement.style.top = y + "px";
+      setTimeout(()=>{
+        gate.domElement.style.transition = "";
+      }, 500);
+    }
+
     if (draggable) {
       $(clone).draggable({
         handle: ".logic-gate-body",
@@ -282,21 +297,27 @@ class LogicCanvas {
         },
         stop: ()=>{
           this.eventManager.publish("CANVAS_GATE_MOVE_END", gate);
-          if(!isInside(gate.domElement, this.domElement)){
+          let onCanvas = isInside(gate.domElement, this.domElement);
+          let removeable = gate._removeable;
+          if(!onCanvas){
             if(removeable){
               gate.remove();
             }else{
-              gate.domElement.style.transition = "all 0.1s";
-              gate.domElement.style.left = x + "px";
-              gate.domElement.style.top = y + "px";
-              setTimeout(()=>{
-                gate.domElement.style.transition = "";
-              }, 500);
+              moveToOrigin();
             }
           }
         }
       });
       $(clone).find(".logic-gate-body").addClass("logic-gate-body-active");
+    }
+
+    if (removeable) {
+      gate.domElement.addEventListener("contextmenu", (event) => {
+        if(!gate._removeable) return;
+        this.eventManager.publish("CANVAS_GATE_REMOVED", gate);
+        event.preventDefault();
+        gate.remove();
+      })
     }
 
     let inputsContainer = $(clone).find(".logic-gate-input-terminal")[0];
@@ -311,9 +332,6 @@ class LogicCanvas {
     if (outputsTerminals.length !== functionSpec.outputCount) {
       throw new Error("Output count does not match");
     }
-
-    let gate = this.world.createLogicGate(functionSpec);
-    gate.setDomElement(clone);
 
     gate.setLabel = (text) => {
       let div = gate.domElement;
@@ -335,14 +353,6 @@ class LogicCanvas {
         this.showConnectableTerminals();
       });
     });
-
-    if (removeable) {
-      gate.domElement.addEventListener("contextmenu", (event) => {
-        this.eventManager.publish("CANVAS_GATE_REMOVED", gate);
-        event.preventDefault();
-        gate.remove();
-      })
-    }
 
     this.eventManager.publish("CANVAS_GATE_CREATED", gate);
     return gate;
@@ -726,14 +736,24 @@ class LogicCanvas {
     return newCanvas;
   }
 
-  clear() {
-    this.world.gates.forEach(gate => {
-      if (gate.funcSpec.name === "WORLD") {
-        gate._linkedWorld.parent.remove();
-      }
-      gate.remove();
-    });
-    this.world.clear();
+  clear(keepIO) {
+    if(keepIO){
+      this.world.gates.forEach(gate => {
+        let isInput = this.world.inputs.includes(gate);
+        let isOutput = this.world.outputs.includes(gate);
+        let isIO = isInput || isOutput;
+        if (gate.funcSpec.name === "WORLD") {
+          gate._linkedWorld.parent.remove();
+        }
+        if(isIO) return;
+        gate.remove();
+      });
+      this.world.wires.forEach(wire => {
+        wire.remove();
+      })
+    }else{
+      this.world.clear(); 
+    }
   }
 
   remove() {

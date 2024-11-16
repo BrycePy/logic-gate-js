@@ -18,12 +18,11 @@
       <button id="add-not" class="btn btn-secondary rounded-pill px-3">
         NOT
       </button>
-      <button id="skip" class="btn btn-primary rounded-pill px-3">
-        Skip
-      </button>
+      <button id="skip" class="btn btn-primary rounded-pill px-3">Skip</button>
     </div>
 
     <p id="message">...</p>
+    <p id="debug"></p>
   </body>
 
   <style>
@@ -80,6 +79,39 @@
   <script src="hintcursor.js"></script>
 
   <script>
+    {
+      let isJQueryReady = typeof jQuery !== "undefined";
+      let isJQueryUIReady = typeof jQuery.ui !== "undefined";
+      let isLZStringReady = typeof LZString !== "undefined";
+      let isWorldReady = typeof World !== "undefined";
+      let isLogicCanvasReady = typeof LogicCanvas !== "undefined";
+      let isHintCursorReady = typeof LogicCanvasHint !== "undefined";
+
+      if (
+        isJQueryReady &&
+        isJQueryUIReady &&
+        isLZStringReady &&
+        isWorldReady &&
+        isLogicCanvasReady &&
+        isHintCursorReady
+      ) {
+        console.log("All scripts loaded successfully.");
+      } else {
+        console.error("Some scripts failed to load.");
+        document.getElementById("debug").innerText = `
+          Some scripts failed to load. Please refresh the page to try again.
+          isJQueryReady: ${isJQueryReady}
+          isJQueryUIReady: ${isJQueryUIReady}
+          isLZStringReady: ${isLZStringReady}
+          isWorldReady: ${isWorldReady}
+          isLogicCanvasReady: ${isLogicCanvasReady}
+          isHintCursorReady: ${isHintCursorReady}
+        `;
+      }
+    }
+  </script>
+
+  <script>
     $(document).ready(async function () {
       // Define div for the logic canvas
       let logicDiv = document.getElementById("logic-canvas-here");
@@ -123,128 +155,86 @@
 
       let logicCanvasHint = new LogicCanvasHint(logicCanvas);
       let eventManager = logicCanvas.eventManager;
-      let text = (message) => {
+      let text = async (message) => {
         $("#message").text(message);
       };
 
       $("#skip").click(() => {
         logicCanvasHint.skip();
       });
-      
-      // async function tutorialSequence(){
-      //   text("Click/Tap on the AND button to add an AND gate to the canvas.");
-      //   let addTest = await logicCanvasHint.addGate($("#add-and")[0], "AND");
 
-      //   text("Right click(PC) or long press(Mobile) on the gate to remove it.");
-      //   await logicCanvasHint.removeGate(addTest);
-
-      //   text("Now try adding an OR gate.");
-      //   let orGate1 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
-
-      //   text("You can move the gate by dragging it. Put the OR gate in the highlighted area.");
-      //   await logicCanvasHint.moveGate(orGate1, 100, 50);
-
-      //   text("To make a connection, click/tap on the output of a gate and then click on the input of another gate.");
-      //   await logicCanvasHint.addWire(in1.out(0), orGate1.in(0));
-      //   await logicCanvasHint.addWire(in2.out(0), orGate1.in(1));
-
-      //   await logicCanvasHint.addWire(orGate1.out(0), out1.in(0));
-
-      //   text("The source terminal can be toggled on/off by clicking/tapping on the gate.");
-      //   await logicCanvasHint.toggleInput(in1);
-
-      //   text("Let's add another OR gate.");
-      //   let orGate2 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
-
-      //   text("Move the gate to the highlighted area.");
-      //   await logicCanvasHint.moveGate(orGate2, 100, 150);
-
-      //   text("Connect the inputs to the OR gate.");
-      //   await logicCanvasHint.addWire(in3.out(0), orGate2.in(0));
-      //   await logicCanvasHint.addWire(in4.out(0), orGate2.in(1));
-
-      //   text("A connection can be removed by clicking/tapping on both ends of the wire.");
-      //   await logicCanvasHint.removeWire(orGate1.out(0), out1.in(0));
-
-      //   text("Let's finish the circuit by adding another OR gate.");
-      //   let orGate3 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
-      //   text("Move the gate to the highlighted area.");
-      //   await logicCanvasHint.moveGate(orGate3, 200, 100);
-
-      //   text("A few more connections to make.");
-      //   await logicCanvasHint.addWire(orGate1.out(0), orGate3.in(0));
-      //   await logicCanvasHint.addWire(orGate2.out(0), orGate3.in(1));
-      //   await logicCanvasHint.addWire(orGate3.out(0), out1.in(0));
-
-      //   text("Turn off M1, the light should turn off.");
-      //   await logicCanvasHint.toggleInput(in1);
-
-      //   text("hurray! You have completed the tutorial. Now you can play with the circuit.");
-
-      //   // await logicCanvasHint.removeWire(in1.out(0), orGate.in(0));
-      //   // await logicCanvasHint.removeGate(orGate);
-      // }
-      
-      async function tutorialSequence(){
-        text("Tap or click the AND button to place an AND gate on the canvas.");
+      async function tutorialSequence() {
+        await text(
+          "Tap or click the AND button to place an AND gate on the canvas."
+        );
         let addTest = await logicCanvasHint.addGate($("#add-and")[0], "AND");
-
-        text("Right-click or drag the gate outside the canvas to remove it.");
+        await text(
+          "Right-click or drag the gate outside the canvas to remove it."
+        );
         await logicCanvasHint.removeGate(addTest);
-
-        text("Next, add an OR gate to the canvas.");
+        await text("Next, add an OR gate to the canvas.");
         let orGate1 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
-
-        text("Drag the OR gate to the highlighted area to move it.");
+        orGate1._removeable = false;
+        await text("Drag the OR gate to the highlighted area to move it.");
         await logicCanvasHint.moveGate(orGate1, 100, 80);
-
-        text("To connect gates, click or tap on the output terminal of one gate, then on the input terminal of another gate.");
+        await text(
+          "To connect gates, click or tap on the output terminal of one gate, then on the input terminal of another gate."
+        );
         await logicCanvasHint.addWire(in1.out(0), orGate1.in(0));
         await logicCanvasHint.addWire(in2.out(0), orGate1.in(1));
-
         await logicCanvasHint.addWire(orGate1.out(0), out1.in(0));
-
-        text("Click or tap on an input source to toggle it on or off.");
+        await text("Click or tap on an input source to toggle it on or off.");
         await logicCanvasHint.toggleInput(in1);
-
-        text("Add another OR gate to the canvas.");
+        await text("Add another OR gate to the canvas.");
         let orGate2 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
-
-        text("Move this OR gate to the highlighted area.");
+        await text("Move this OR gate to the highlighted area.");
         await logicCanvasHint.moveGate(orGate2, 100, 230);
-
-        text("Connect the inputs to the new OR gate.");
+        await text("Connect the inputs to the new OR gate.");
         await logicCanvasHint.addWire(in3.out(0), orGate2.in(0));
         await logicCanvasHint.addWire(in4.out(0), orGate2.in(1));
-
-        text("To remove a connection, click or tap on both ends of the wire.");
+        await text(
+          "To remove a connection, click or tap on both ends of the wire."
+        );
         await logicCanvasHint.removeWire(orGate1.out(0), out1.in(0));
-
-        text("Now add one more OR gate to complete the circuit.");
+        await text("Now add one more OR gate to complete the circuit.");
         let orGate3 = await logicCanvasHint.addGate($("#add-or")[0], "OR");
-
-        text("Move the last OR gate to the highlighted area.");
+        await text("Move the last OR gate to the highlighted area.");
         await logicCanvasHint.moveGate(orGate3, 200, 155);
-
-        text("Make the final connections.");
+        await text("Make the final connections.");
         await logicCanvasHint.addWire(orGate1.out(0), orGate3.in(0));
         await logicCanvasHint.addWire(orGate2.out(0), orGate3.in(1));
         await logicCanvasHint.addWire(orGate3.out(0), out1.in(0));
-
         await logicCanvas.world.evaluate([1, 0, 0, 0]);
-        text("Turn off M1. The light should go off.");
+        await text("Turn off M1. The light should go off.");
         await logicCanvasHint.toggleInput(in1);
-
-        text("At this point, if any of the inputs are active, the light should turn on. Lets try it out.");
+        await text(
+          "At this point, if any of the inputs are active, the light should turn on. Lets try it out."
+        );
         await logicCanvasHint.toggleInput(in2);
         await logicCanvasHint.toggleInput(in4);
         await logicCanvasHint.toggleInput(in2);
         await logicCanvasHint.toggleInput(in4);
-        
-        text("Congratulations! You've completed the tutorial. Feel free to experiment with the circuit now.");
+        await text(
+          "Congratulations! You've completed the tutorial. Feel free to experiment with the circuit now."
+        );
       }
-        
-      
+
+      async function proxy() {
+        let errorOut = false;
+        try {
+          await tutorialSequence();
+        } catch (e) {
+          errorOut = true;
+          text("Oops! Something went wrong. Please try again.");
+          await sleep(3000);
+          logicCanvas.clear(true);
+        }
+        if (errorOut) {
+          proxy();
+        }
+      }
+      // proxy();
+
       tutorialSequence();
     });
   </script>
