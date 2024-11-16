@@ -90,6 +90,7 @@ class LogicCanvas {
 
     this.mousePos = { x: 0, y: 0 };
     this.onMouseMove = (event) => {
+      console.log("mousemove", event);
       let bounds = this.domElement.getBoundingClientRect();
       this.mousePos = {
         x: event.clientX - bounds.left,
@@ -98,10 +99,10 @@ class LogicCanvas {
     }
     this.domElement.addEventListener("mousemove", this.onMouseMove, true);
 
-    this.canvas.addEventListener("click", () => {
-      this.world.clearSelction();
-      this.showConnectableTerminals();
-    });
+    // this.canvas.addEventListener("click", () => {
+    //   this.world.clearSelction();
+    //   this.showConnectableTerminals();
+    // });
 
     this.slowVisualTick = setInterval(() => {
       this.visualTick();
@@ -233,7 +234,8 @@ class LogicCanvas {
       ctx.stroke();
     });
 
-    if(!skipMouse && this.world.previousTerminal){
+    // if(!skipMouse && this.world.previousTerminal){
+    if(true && this.world.previousTerminal){
       let terminal = this.world.previousTerminal;
       let pos = calculateOffset(terminal.domElement, this.domElement);
       let jqTerminal = $(terminal.domElement);
