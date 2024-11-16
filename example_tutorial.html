@@ -109,6 +109,8 @@
     });
 
     touchCursorParent.addEventListener("touchmove", (e) => {
+      event.preventDefault();
+      event.stopPropagation();
       console.log(e);
       let offset = $(touchCursor).offset();
       let dx = e.touches[0].clientX - refPoint.x;
@@ -125,7 +127,7 @@
         clientX: offset.left + $(touchCursor).width() / 2,
         clientY: offset.top + $(touchCursor).height() / 2
       }));
-    });
+    }, {passive: false});
 
     touchCursorParent.addEventListener("touchend", () => {
       let downTime = Date.now() - startPoint.at;
