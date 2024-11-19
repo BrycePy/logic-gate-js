@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Logic Gate Simulator</h1>
+
+    <h2>Main</h2>
+    <div id="app">
+      <div id="main-div"></div>
+      <!-- <div id="gate-deck">
+        <button id="add-and" class="btn-add-gate">AND</button>
+        <button id="add-or" class="btn-add-gate">OR</button>
+        <button id="add-not" class="btn-add-gate">NOT</button>
+        <button id="add-switch" class="btn-add-gate">SWITCH</button>
+      </div> -->
+    </div>
+
+    <h2>USER</h2>
+    <div id="user-defined-gates"></div>
+
+    <!-- input checkbox id straigth line -->
+    <table id="truthtable">
+      <tr>
+        <th>S1</th>
+        <th>S2</th>
+        <th>S3</th>
+        <th>S4</th>
+        <th>Output</th>
+      </tr>
+    </table>
+    <button id="checkall">Check All</button>
+    <button id="table-random">Random</button>
+    <button id="table-add-column">Add</button>
+    <button id="table-delete-column">Delete</button>
+
+    <section id="settings">
+      <h3>Settings</h3>
+      <input type="checkbox" id="straight-line" />
+      <span>Speed:</span>
+      <input type="range" id="speed-slider" min="10" max="300" value="100" />
+      <span id="speed-label"></span>
+    </section>
+  </body>
+
+  <link rel="stylesheet" href="v2.css" />
+  <link rel="stylesheet" href="logicgate.css" />
+
+  <script
+    src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+    crossorigin="anonymous"
+  ></script>
+
+  <script
+    src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"
+    integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
+    crossorigin="anonymous"
+  ></script>
+  <script src="lib/jquery.ui.touch-punch.min.js"></script>
+  <script src="lib/lz-string.min.js"></script>
+  <script src="logicgate_template.js"></script>
+  <script src="logicgate_back.js"></script>
+  <script src="logicgate_front.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      function createLatch() {
+        let world = new World();
+        let userDefinedGateDiv = document.getElementById("user-defined-gates");
+        let latchDiv = document.createElement("div");
+        latchDiv.style.width = "400px";
+        latchDiv.style.height = "200px";
+        userDefinedGateDiv.appendChild(latchDiv);
+
+        let canvas = new LogicCanvas(world, latchDiv);
+
+        let gateOr1 = canvas.createGate("OR", 130, 20);
+        let gateNot1 = canvas.createGate("NOT", 200, 20);
+        let gateOr2 = canvas.createGate("OR", 130, 130);
+        let gateNot2 = canvas.createGate("NOT", 200, 130);
+
+        let in1 = canvas.createInput();
+        let in2 = canvas.createInput();
+        let out1 = canvas.createOutput();
+        let out2 = canvas.createOutput();
+
+        canvas.connect(in1.out(0), gateOr1.in(0));
+        canvas.connect(in2.out(0), gateOr2.in(1));
+        canvas.connect(gateOr1.out(0), gateNot1.in(0));
+        canvas.connect(gateOr2.out(0), gateNot2.in(0));
+        canvas.connect(gateNot1.out(0), out1.in(0));
+        canvas.connect(gateNot2.out(0), out2.in(0));
+
+        canvas.connect(gateNot1.out(0), gateOr2.in(0));
+        canvas.worldTick();
+        canvas.worldTick();
+        canvas.connect(gateNot2.out(0), gateOr1.in(1));
+
+        return canvas;
+      }
+
+      function createFullAdder() {
+        let world = new World();
+        let userDefinedGateDiv = document.getElementById("user-defined-gates");
+        let fullAdderDiv = document.createElement("div");
+        fullAdderDiv.style.width = "400px";
+        fullAdderDiv.style.height = "200px";
+        userDefinedGateDiv.appendChild(fullAdderDiv);
+        let canvas = new LogicCanvas(world, fullAdderDiv);
+
+        let gateXOR1 = canvas.createGate("XOR", 100, 20);
+        let gateXOR2 = canvas.createGate("XOR", 200, 20);
+        let gateAND1 = canvas.createGate("AND", 120, 145);
+        let gateAND2 = canvas.createGate("AND", 200, 80);
+        let gateOR = canvas.createGate("OR", 280, 100);
+
+        let in1 = canvas.createInput();
+        let in2 = canvas.createInput();
+        let in3 = canvas.createInput();
+        let out1 = canvas.createOutput();
+        let out2 = canvas.createOutput();
+
+        canvas.connect(in1.out(0), gateXOR1.in(0));
+        canvas.connect(in1.out(0), gateAND1.in(0));
+        canvas.connect(in2.out(0), gateXOR1.in(1));
+        canvas.connect(in2.out(0), gateAND1.in(1));
+        canvas.connect(gateXOR1.out(0), gateXOR2.in(0));
+        canvas.connect(gateXOR1.out(0), gateAND2.in(0));
+        canvas.connect(in3.out(0), gateXOR2.in(1));
+        canvas.connect(in3.out(0), gateAND2.in(1));
+        canvas.connect(gateXOR2.out(0), out1.in(0));
+        canvas.connect(gateAND1.out(0), gateOR.in(1));
+        canvas.connect(gateAND2.out(0), gateOR.in(0));
+        canvas.connect(gateOR.out(0), out2.in(0));
+        return canvas;
+      }
+
+      function main() {
+        let mainWorld = new World();
+        let mainDiv = document.getElementById("main-div");
+        mainDiv.style.width = "600px";
+        mainDiv.style.height = "400px";
+        let logicCanvas = new LogicCanvas(mainWorld, mainDiv);
+        let templates = logicCanvas.loadTemplate("logic-gate-templates");
+
+        let inputs = [];
+        for (let i = 0; i < 9; i++) {
+          inputs.push(logicCanvas.createInput());
+        }
+
+        let outputs = [];
+        for (let i = 0; i < 5; i++) {
+          outputs.push(logicCanvas.createOutput());
+        }
+
+        let adderCanvas1 = createFullAdder();
+        let adderCanvas2 = createFullAdder();
+        let adderCanvas3 = createFullAdder();
+        let adderCanvas4 = createFullAdder();
+
+        let adder1 = logicCanvas.linkWorld(adderCanvas1.world, 250, 320);
+        let adder2 = logicCanvas.linkWorld(adderCanvas2.world, 250, 230);
+        let adder3 = logicCanvas.linkWorld(adderCanvas3.world, 250, 140);
+        let adder4 = logicCanvas.linkWorld(adderCanvas4.world, 250, 50);
+        
+        let adders = [adder1, adder2, adder3, adder4];
+
+        // Connect carry out to carry in
+        logicCanvas.connect(inputs[8].out(0), adder1.in(2));
+        logicCanvas.connect(adder1.out(1), adder2.in(2));
+        logicCanvas.connect(adder2.out(1), adder3.in(2));
+        logicCanvas.connect(adder3.out(1), adder4.in(2));
+        logicCanvas.connect(adder4.out(1), outputs[0].in(0));
+
+        // Connect inputs to adders
+        for (let i = 0; i < 4; i++) {
+          logicCanvas.connect(inputs[i].out(0), adders[3-i].in(0));
+          logicCanvas.connect(inputs[i+4].out(0), adders[3-i].in(1));
+          logicCanvas.connect(adders[i].out(0), outputs[3-i+1].in(0));
+        }
+
+        let textbox = document.createElement("textarea");
+        document.body.appendChild(textbox);
+        
+        const exportButton = document.createElement("button");
+        exportButton.innerHTML = "Export";
+        document.body.appendChild(exportButton);
+
+        exportButton.onclick = function() {
+          let exportRaw = logicCanvas.export();
+          let exportString = JSON.stringify(exportRaw);
+          console.log(exportString);
+          textbox.value = exportString;
+        }
+
+        const visualTick = () => {
+          logicCanvas.visualTick();
+          // latch1.visualTick();
+          // latch2.visualTick();
+          adderCanvas1.visualTick();
+          adderCanvas2.visualTick();
+          adderCanvas3.visualTick();
+          adderCanvas4.visualTick();
+          requestAnimationFrame(visualTick);
+        };
+        requestAnimationFrame(visualTick);
+
+        const backendTick = () => {
+          logicCanvas.worldTick();
+        };
+        setInterval(backendTick, 1000 / 300);
+        logicCanvas.world.enableAutoSleep();
+      }
+
+      console.log("logicgate_front.js loaded");
+      main();
+    });
+  </script>
+</html>

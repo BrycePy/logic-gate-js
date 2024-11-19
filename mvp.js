@@ -189,6 +189,33 @@ $("#checkall").click(async function(){
   this.disabled = false;
 });
 
+$("#table-random").click(function(){
+  var $trs = $("#truthtable tr");
+  for(var i = 1; i < $trs.length; i++){
+    var $tr = $trs.eq(i);
+    for(var j = 0; j < 4; j++){
+      var $td = $tr.find("td").eq(j);
+      $td.text(Math.random() > 0.5 ? "1" : "0");
+    }
+  }  
+});
+
+$("#table-add-column").click(function(){
+  var $trs = $("#truthtable tr");
+  var $tr = $trs.eq($trs.length - 1);
+  var $new_tr = $tr.clone();
+  $new_tr.find("td").text("0");
+  $new_tr.find("td").eq(4).text("0");
+  $tr.after($new_tr);
+});
+
+$("#table-delete-column").click(function(){
+  var $trs = $("#truthtable tr");
+  if($trs.length > 2){
+    $trs.eq($trs.length - 1).remove();
+  }
+});
+
 function NewAndGate(){
   var gate = new Gate((a, b) => a && b);
   return gate;
@@ -827,3 +854,11 @@ var speed_onchange = function(){
 }
 speed_slider.addEventListener("mouseup", speed_onchange);
 speed_onchange();
+
+
+TT = something
+const wrapper = () => {
+  return
+}
+
+generateLogicGame(wrapper)

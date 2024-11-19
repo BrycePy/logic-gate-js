@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="main-canvas"></div>
+    <div id="gate-deck">
+      <button id="add-and" class="add_gate">AND</button>
+      <button id="add-or" class="add_gate">OR</button>
+      <button id="add-not" class="add_gate">NOT</button>
+      <button id="add-xor" class="add_gate">XOR</button>
+      <button id="add-input" class="add_gate">+IN</button>
+      <button id="remove-input" class="add_gate">-IN</button>
+      <button id="add-output" class="add_gate">+OUT</button>
+      <button id="remove-output" class="add_gate">-OUT</button>
+      <button id="inc-width" class="add_gate">+W</button>
+      <button id="dec-width" class="add_gate">-W</button>
+      <button id="inc-height" class="add_gate">+H</button>
+      <button id="dec-height" class="add_gate">-H</button>
+    </div>
+    <textarea id="textIO"></textarea>
+    <textarea id="textIO2"></textarea>
+    <button id="load">Load</button>
+    <button id="load-as-function">Load as Function</button>
+    <button id="export">Export</button>
+    <button id="clear">Clear</button>
+  </body>
+
+  <link rel="stylesheet" href="logicgate.css" />
+
+  <script
+    src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+    crossorigin="anonymous"
+  ></script>
+
+  <script
+    src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"
+    integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
+    crossorigin="anonymous"
+  ></script>
+  <script src="lib/jquery.ui.touch-punch.min.js"></script>
+  <script src="lib/lz-string.min.js"></script>
+  <script src="logicgate_template.js"></script>
+  <script src="logicgate_back.js"></script>
+  <script src="logicgate_front.js"></script>
+
+  <script>
+    $(document).ready(async function () {
+      // Define div for the logic canvas
+      let logicDiv = document.getElementById("main-canvas");
+      logicDiv.style.width = "600px";
+      logicDiv.style.height = "600px";
+      // Create the logic canvas
+      let mainWorld = new World();
+      let logicCanvas = new LogicCanvas(mainWorld, logicDiv);
+      
+      // Start the visual and world ticks
+      logicCanvas.startVisualTick();
+      logicCanvas.startWorldTick((tickPerSecond = 300));
+
+      // Show/Hide Wireframe for just the LogicCanvas
+      logicCanvas.hideWireFrame();
+      logicCanvas.showWireFrame();
+      // Show/Hide Wireframe for all elements
+      logicCanvas.hideWireFrame($("*"));
+      logicCanvas.showWireFrame($("*"));
+
+      let textbox = document.getElementById("textIO");
+      let textbox2 = document.getElementById("textIO2");
+
+      $("#load").click(function () {
+        let text = textbox.value;
+        let data = JSON.parse(text);
+        logicCanvas.clear();
+        logicCanvas.load(data);
+      });
+    
+      
+      $("#load-as-function").click(function () {
+        let text = textbox.value;
+        let data = JSON.parse(text);
+        logicCanvas.importAsGate(data);
+      });
+
+      $("#export").click(function () {
+        let exportRaw = logicCanvas.export();
+        let exportString = JSON.stringify(exportRaw);
+        console.log(exportString);
+        textbox.value = exportString;
+
+        let compressed = LZString.compressToBase64(exportString);
+        console.log(compressed);
+        textbox2.value = compressed;
+
+        let compressionRatio = exportString.length / compressed.length;
+        console.log(compressionRatio);
+      });
+
+      $("#clear").click(function () {
+        logicCanvas.clear();
+      });
+
+      $("#add-and").click(function () {
+        logicCanvas.createGate("AND", 100, 100);
+      });
+
+      $("#add-or").click(function () {
+        logicCanvas.createGate("OR", 100, 100);
+      });
+
+      $("#add-not").click(function () {
+        logicCanvas.createGate("NOT", 100, 100);
+      });
+
+      $("#add-xor").click(function () {
+        logicCanvas.createGate("XOR", 100, 100);
+      });
+
+      $("#add-input").click(function () {
+        logicCanvas.createInput();
+      });
+
+      $("#add-output").click(function () {
+        logicCanvas.createOutput();
+      });
+
+      $("#remove-input").click(function () {
+        logicCanvas.removeInput();
+      });
+
+      $("#remove-output").click(function () {
+        logicCanvas.removeOutput();
+      });
+
+      $("#inc-width").click(function () {
+        logicCanvas.domElement.style.width = `${parseInt(logicCanvas.domElement.style.width) + 50}px`;
+        logicCanvas.updateCanvas();
+      });
+
+      $("#dec-width").click(function () {
+        logicCanvas.domElement.style.width = `${parseInt(logicCanvas.domElement.style.width) - 50}px`;
+        logicCanvas.updateCanvas();
+      });
+
+      $("#inc-height").click(function () {
+        logicCanvas.domElement.style.height = `${parseInt(logicCanvas.domElement.style.height) + 50}px`;
+        logicCanvas.updateCanvas();
+      });
+
+      $("#dec-height").click(function () {
+        logicCanvas.domElement.style.height = `${parseInt(logicCanvas.domElement.style.height) - 50}px`;
+        logicCanvas.updateCanvas();
+      });
+    });
+  </script>
+</html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="logic-canvas-here"></div>
+
+  <div class="challenge-container">
+    <h3 class="challenge-text-header">Challenge (1/3)</h3>
+    <div class="living-room-container" id="living-room-1">
+      <div class="living-room">LIVING ROOM
+      <!-- <div id="living-room-light">Light</div> -->
+      <div class="living-room-motion-sensor living-room-motion-sensor-1">M1</div>
+      <div class="living-room-motion-sensor living-room-motion-sensor-2">M2</div>
+      <div class="living-room-motion-sensor living-room-motion-sensor-3">M3</div>
+      <div class="living-room-motion-sensor living-room-motion-sensor-4">M4</div>
+      </div>
+    </div>
+    <p class="challenge-text">
+      This living room is quite spacious, so a single motion sensor doesn't provide full coverage. To address this, multiple motion sensors (labeled M1 through M4) have been installed. Each sensor will send an "on" signal whenever motion is detected within its range.
+      <br><br>
+      <b>Task:</b> Design a circuit that turns on the light whenever any of the motion sensors is activated.
+    </p>
+  </div>
+
+  <div class="challenge-container">
+    <h3 class="challenge-text-header">Challenge (2/3)</h3>
+    <div class="living-room-container" id="living-room-2">
+      <div class="living-room">LIVING ROOM
+      <!-- <div id="living-room-light">Light</div> -->
+        <div class="living-room-motion-sensor living-room-motion-sensor-1">M1</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-2">M2</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-3">M3</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-4">M4</div>
+        <div class="living-room-switch living-room-switch-a">A</div>
+      </div>
+    </div>
+    <p class="challenge-text">
+      The user wants the ability to temporarily disable the motion sensor system while watching a movie. To accomplish this, a switch (labeled A) has been added. Switch A controls the activation of the motion sensors: when A is in the "off" position, the light should stay off even if any motion is detected.
+      <br><br>
+      <b>Task:</b> Modify the circuit so that the light only turns on when motion is detected and switch A is in the "on" position. If switch A is off, the light should remain off regardless of any motion detected by the sensors.
+    </p>
+  </div>
+
+  <div class="challenge-container">
+    <h3 class="challenge-text-header">Challenge (3/3)</h3>
+    <div class="living-room-container" id="living-room-3">
+      <div class="living-room">LIVING ROOM
+      <!-- <div id="living-room-light">Light</div> -->
+        <div class="living-room-motion-sensor living-room-motion-sensor-1">M1</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-2">M2</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-3">M3</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-4">M4</div>
+      </div>
+    </div>
+    <p class="challenge-text">
+      The user has noticed that the light sometimes turns off when sitting still in the living room, due to lack of motion detection. To solve this, a new switch labeled S has been added. When S is on, it should override the motion sensors and keep the light on continuously, regardless of motion or the state of switch A.
+      <br><br>
+      <b>Task:</b> Update the circuit so that:
+      <br> - The light turns on if switch S is on, regardless of motion or the position of switch A.
+      <br> - If S is off, the light will only turn on when motion is detected and switch A is on.
+    </p>
+  </div>
+</body>
+
+<style>
+  .challenge-container {
+    width: 500px;
+    border: 1px solid black;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  .challenge-text-header {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 5px;
+  }
+  .challenge-text {
+    margin: 0;
+  }
+  .living-room-container {
+    position: relative;
+    width: 400px;
+    height: 200px;
+    padding: 30px;
+    overflow: hidden;
+  }
+  .living-room {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+    border: 1px solid black;
+    border-radius: 20px;
+    line-height: 200px;
+    text-align: center;
+    font-size: 50px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+  .living-room-motion-sensor-1 {
+    top: 5px;
+    left: 5px;
+  }
+  .living-room-motion-sensor-2 {
+    top: 5px;
+    right: 5px;
+  }
+  .living-room-motion-sensor-3 {
+    bottom: 5px;
+    left: 5px;
+  }
+  .living-room-motion-sensor-4 {
+    bottom: 5px;
+    right: 5px;
+  }
+
+  .living-room-switch-a {
+    bottom: 5px;
+    right: 50%;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    background-color: #f0f0f0;
+    font-size: 17px;
+  }
+
+  .living-room-motion-sensor::before, .living-room-switch::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    color: black;
+  }
+
+  .living-room-motion-sensor, .living-room-switch {
+    position: absolute;
+    text-align: center;
+    line-height: 30px;
+    width: 30px;
+    height: 30px;
+    background-color: #f0f0f0;
+    border: 1px solid black;
+    font-size: 17px;
+    z-index: 10;
+  }
+
+  .living-room-motion-sensor {
+    border-radius: 50%;
+  }
+
+  .living-room-switch {
+    border-radius: 10%;
+  }
+
+  #living-room-light {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    background-color: #f0f0f0;
+    border: 1px solid black;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+  }
+
+  @keyframes LivingRoom1_M1 {
+    0% {
+      width: 0px;
+      height: 0px;
+      background-color: rgba(255, 100, 100, 0.5);
+    }
+    25% {
+      width: 500px;
+      height: 500px;
+    }
+    49% {
+      width: 500px;
+      height: 500px;
+      background-color: rgba(255, 100, 100, 0.5);
+    }
+    50% {
+      width: 0px;
+      height: 0px;
+      background-color: rgba(100, 255, 100, 0.5);
+    }
+    100% {
+      width: 500px;
+      height: 500px;
+      background-color: rgba(100, 255, 100, 0.1);
+    }
+  }
+
+  @keyframes LivingRoom1_M234 {
+    0% {
+      width: 0px;
+      height: 0px;
+    }
+    50% {
+      width: 0px;
+      height: 0px;
+      background-color: rgba(100, 255, 100, 0.5);
+    }
+    100% {
+      width: 500px;
+      height: 500px;
+      background-color: rgba(100, 255, 100, 0.1);
+    }
+  }
+
+  #living-room-1 .living-room-motion-sensor::before{
+    animation: LivingRoom1_M234 5s infinite;
+  }
+
+  #living-room-1 .living-room-motion-sensor-1::before{
+    animation: LivingRoom1_M1 5s infinite;
+  }
+
+  @keyframes LivingRoom2_M {
+    0% {
+      width: 500px;
+      height: 500px;
+      background-color: rgba(100, 255, 100, 0.1);
+    }
+    25% {
+      width: 500px;
+      height: 500px;
+      background-color: rgba(100, 255, 100, 0.1);
+    }
+    50% {
+      width: 0px;
+      height: 0px;
+      background-color: rgba(100, 255, 100, 0.3);
+    }
+    75% {
+      width: 0px;
+      height: 0px;
+      background-color: rgba(100, 255, 100, 0.3);
+    }
+    100% {
+      width: 500px;
+      height: 500px;
+      background-color: rgba(100, 255, 100, 0.1);
+    }
+  }
+
+  @keyframes LivingRoom2_A1 {
+    0% {
+      width: 20px;
+      height: 20px;
+      opacity: 0;
+    }
+    15% {
+      content: "";
+      width: 20px;
+      height: 20px;
+      border: 1px solid rgba(0, 0, 0, 0);
+      opacity: 0;
+    }
+    25% {
+      content: "OFF";
+      border: 1px solid rgba(0, 0, 0, 1);
+      opacity: 100;
+    }
+    40% {
+      content: "OFF";
+      width: 100px;
+      height: 100px;
+      border: 1px solid rgba(0, 0, 0, 0);
+      background-color: rgba(100, 255, 100, 0.0);
+      opacity: 0;
+    }
+    50% {
+      content: "";
+      width: 20px;
+      height: 20px;
+    }
+    65%{
+      content: "";
+      width: 20px;
+      height: 20px;
+      opacity: 0;
+    }
+    75% {
+      content: "ON";
+      opacity: 100;
+      border: 1px solid rgba(0, 0, 0, 1);
+    }
+    90% {
+      width: 100px;
+      height: 100px;
+      border: 1px solid rgba(0, 0, 0, 0);
+      background-color: rgba(100, 255, 100, 0.0);
+      opacity: 0;
+    }
+    100% {
+      content: "ON";
+      width: 20px;
+      height: 20px;
+      opacity: 0;
+    }
+  }
+
+  @keyframes LivingRoom2_A2 {
+    0% {
+      color: white;
+      background-color: black;
+    }
+    15% {
+      color: white;
+      background-color: black;
+    }
+    25% {
+      color: black;
+      background-color: white;
+    }
+    65% {
+      color: black;
+      background-color: white;
+    }
+    75% {
+      color: white;
+      background-color: black;
+    }
+    100% {
+      color: white;
+      background-color: black;
+    }
+  }
+
+  #living-room-2 .living-room-motion-sensor::before{
+    animation: LivingRoom2_M 8s infinite;
+  }
+
+  #living-room-2 .living-room-switch-a::before{
+    animation: LivingRoom2_A1 8s infinite;
+  }
+
+  #living-room-2 .living-room-switch-a{
+    /* animation-direction: reverse; */
+    animation: LivingRoom2_A2 8s infinite;
+  }
+
+</style>
+
+<link rel="stylesheet" href="logicgate.css" />
+
+<script
+src="https://code.jquery.com/jquery-3.7.1.min.js"
+integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+crossorigin="anonymous"
+></script>
+
+<script
+src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"
+integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
+crossorigin="anonymous"
+></script>
+<script src="lib/jquery.ui.touch-punch.min.js"></script>
+<script src="lib/lz-string.min.js"></script>
+<script src="logicgate_template.js"></script>
+<script src="logicgate_back.js"></script>
+<script src="logicgate_front.js"></script>
+
+<script>
+  $(document).ready(async function(){
+    // Define div for the logic canvas
+    let logicDiv = document.getElementById("logic-canvas-here");
+    logicDiv.style.width = "500px"
+    logicDiv.style.height = "300px"
+
+    // Create the logic canvas
+    let mainWorld = new World();
+    let logicCanvas = new LogicCanvas(mainWorld, logicDiv);
+    
+    // Start the visual and world ticks
+    logicCanvas.startVisualTick();
+    logicCanvas.startWorldTick(tickPerSecond=20);
+
+    // Create some inputs and outputs
+    let in1 = logicCanvas.createInput();
+    let in2 = logicCanvas.createInput();
+    let in3 = logicCanvas.createInput();
+    let in4 = logicCanvas.createInput();
+    let in5 = logicCanvas.createInput();
+    let in6 = logicCanvas.createInput();
+    let out1 = logicCanvas.createOutput();
+
+    // Create some gates
+    // let gateAND1 = logicCanvas.createGate("AND", 120, 70);
+    let gateOR1 = logicCanvas.createGate("OR", 100, 40);
+    let gateOR2 = logicCanvas.createGate("OR", 180, 40);
+    let gateOR3 = logicCanvas.createGate("OR", 260, 40);
+    let gateOR4 = logicCanvas.createGate("OR", 340, 40);
+
+    let gateAND1 = logicCanvas.createGate("AND", 100, 100);
+
+    in1.setLabel("M1");
+    in2.setLabel("M2");
+    in3.setLabel("M3");
+    in4.setLabel("M4");
+    in5.setLabel("A");
+    in6.setLabel("S");
+
+    out1.setLabel("Light");
+
+    // Show Wireframe for just the LogicCanvas
+    logicCanvas.showWireFrame();
+
+    await sleep(50);
+    // Evaluate the circuit
+    let result = await logicCanvas.evaluate([0, 1, 1]);
+    console.log(result);
+  });
+</script>
+
+
+</html>
