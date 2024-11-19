@@ -59,6 +59,10 @@ class Terminal {
     }
   }
 
+  getState() {
+    return this.state;
+  }
+
   toggle(){
     this.setState(!this.state);
   }
@@ -297,9 +301,18 @@ class World {
     });
   }
 
-  async evaluate(inputs) {
-    this.setInputsState(inputs);
-    await this.waitStable();
+  async evaluate(inputs, instant) {
+    if(inputs){
+      this.setInputsState(inputs);
+    }
+    if (instant) {
+      this.notifyInstability();
+      while (!this.isStable()){
+        this.tick();
+      };
+    }else{
+      await this.waitStable();
+    }
     let results = this.outputs.map(g => g.in(0).state)
     this.eventManager.publish("WORLD_RESULT", { inputs: inputs, results: results });
     return results;
@@ -310,11 +323,16 @@ class World {
     this.stableCount = 0;
   }
 
-  checkFinished() {
+  getStateSignature() {
     let stateTemp = "";
     this.terminals.forEach(t => {
       stateTemp += t.state ? "1" : "0";
     });
+    return stateTemp;
+  }
+
+  checkFinished() {
+    let stateTemp = this.getStateSignature();
     if (stateTemp === this.previousState) {
       this.stableCount++;
       this.instableCount = 0;
@@ -458,8 +476,8 @@ class World {
 
   remove() {
     this.clear();
-    this.eventManager = null;
     this.domElement = null;
+    this.eventManager = null;
     this.parent = null;
     delete this;
   }

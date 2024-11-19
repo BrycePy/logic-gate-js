@@ -1,25 +1,13 @@
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-$(function () {
+const loadTemplate = () => {
   let div = document.createElement("div");
   div.id = "logic-gate-default-template";
   div.style.display = "none";
   document.body.appendChild(div);
   div.innerHTML = logicGateDefaultTemplate;
-});
-
-// const calculateOffset = (element, parent) => {
-//   let offset = { top: 0, left: 0 };
-//   while (element !== parent) {
-//     if (!element) {
-//       return offset;
-//     }
-//     offset.top += element.offsetTop;
-//     offset.left += element.offsetLeft;
-//     element = element.parentElement;
-//   }
-//   return offset;
-// };
+}
+loadTemplate();
 
 const calculateOffset = (element, parent) => {
   let offset = { top: 0, left: 0 };
@@ -739,14 +727,17 @@ class LogicCanvas {
   }
 
   clear(keepIO) {
+    this.world.gates.forEach(gate => {
+      if (gate.funcSpec.name === "WORLD") {
+        gate._linkedWorld.parent.remove();
+      }
+    });
+
     if(keepIO){
       this.world.gates.forEach(gate => {
         let isInput = this.world.inputs.includes(gate);
         let isOutput = this.world.outputs.includes(gate);
         let isIO = isInput || isOutput;
-        if (gate.funcSpec.name === "WORLD") {
-          gate._linkedWorld.parent.remove();
-        }
         if(isIO) return;
         gate.remove();
       });

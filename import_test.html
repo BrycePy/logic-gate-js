@@ -11,6 +11,7 @@
       <button id="add-and" class="add_gate">AND</button>
       <button id="add-or" class="add_gate">OR</button>
       <button id="add-not" class="add_gate">NOT</button>
+      <button id="add-xor" class="add_gate">XOR</button>
       <button id="add-input" class="add_gate">+IN</button>
       <button id="remove-input" class="add_gate">-IN</button>
       <button id="add-output" class="add_gate">+OUT</button>
@@ -115,6 +116,10 @@
         logicCanvas.createGate("NOT", 100, 100);
       });
 
+      $("#add-xor").click(function () {
+        logicCanvas.createGate("XOR", 100, 100);
+      });
+
       $("#add-input").click(function () {
         logicCanvas.createInput();
       });
@@ -132,22 +137,22 @@
       });
 
       $("#inc-width").click(function () {
-        logicCanvas.div.style.width = `${parseInt(logicCanvas.div.style.width) + 50}px`;
+        logicCanvas.domElement.style.width = `${parseInt(logicCanvas.domElement.style.width) + 50}px`;
         logicCanvas.updateCanvas();
       });
 
       $("#dec-width").click(function () {
-        logicCanvas.div.style.width = `${parseInt(logicCanvas.div.style.width) - 50}px`;
+        logicCanvas.domElement.style.width = `${parseInt(logicCanvas.domElement.style.width) - 50}px`;
         logicCanvas.updateCanvas();
       });
 
       $("#inc-height").click(function () {
-        logicCanvas.div.style.height = `${parseInt(logicCanvas.div.style.height) + 50}px`;
+        logicCanvas.domElement.style.height = `${parseInt(logicCanvas.domElement.style.height) + 50}px`;
         logicCanvas.updateCanvas();
       });
 
       $("#dec-height").click(function () {
-        logicCanvas.div.style.height = `${parseInt(logicCanvas.div.style.height) - 50}px`;
+        logicCanvas.domElement.style.height = `${parseInt(logicCanvas.domElement.style.height) - 50}px`;
         logicCanvas.updateCanvas();
       });
     });

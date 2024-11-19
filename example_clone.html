@@ -105,7 +105,7 @@ crossorigin="anonymous"
       let newCanvas2 = logicCanvas.clone();
 
       let placeholder = document.getElementById("logic-canvas-here-clone");
-      placeholder.replaceWith(newCanvas2.div);
+      placeholder.replaceWith(newCanvas2.domElement);
       newCanvas2.updateCanvas();
 
       newCanvas2.startVisualTick();

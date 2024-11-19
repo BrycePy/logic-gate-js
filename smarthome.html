@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="logic-canvas-here"></div>
+
+  <div class="challenge-container">
+    <h3 class="challenge-text-header">Challenge (1/3)</h3>
+    <div class="living-room-container" id="living-room-1">
+      <div class="living-room">LIVING ROOM
+      <!-- <div id="living-room-light">Light</div> -->
+        <div class="living-room-person" id="living-room-person-1">P</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-1">M1</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-2">M2</div>
+        <div class="living-room-motion-sensor living-room-motion-sensor-3">M3</div>
+        <!-- <div class="living-room-motion-sensor living-room-motion-sensor-4">M4</div> -->
+      </div>
+    </div>
+    <p class="challenge-text">
+      This living room is equipped with a single motion sensor (M1) to detect activity within its range. The motion sensor sends an "on" signal whenever motion is detected.  
+      <br><br>  
+      <b>Task:</b> Design a circuit that turns on the light whenever the motion sensor is activated.
+    </p>
+    <button id="resolve-challenge-1">Resolve</button>
+    <span id="challenge-1-result"></span>
+  </div>
+</body>
+
+<style>
+    .challenge-container {
+    width: 500px;
+    border: 1px solid black;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  .challenge-text-header {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 5px;
+  }
+  .challenge-text {
+    margin: 0;
+  }
+  .living-room-container {
+    position: relative;
+    width: 400px;
+    height: 200px;
+    padding: 30px;
+    overflow: hidden;
+  }
+  .living-room {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+    border: 1px solid black;
+    border-radius: 20px;
+    line-height: 200px;
+    text-align: center;
+    font-size: 50px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+  .living-room-motion-sensor-1 {
+    top: 5px;
+    left: 5px;
+  }
+  .living-room-motion-sensor-2 {
+    top: 5px;
+    right: 5px;
+  }
+  .living-room-motion-sensor-3 {
+    bottom: 5px;
+    left: 5px;
+  }
+  .living-room-motion-sensor-4 {
+    bottom: 5px;
+    right: 5px;
+  }
+
+  .living-room-person {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* transition: left 0.01s, top 0.01s; */
+  }
+
+  .living-room-motion-sensor::before, .living-room-person::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    color: black;
+  }
+
+  .living-room-motion-sensor::before {
+    width: 400px;
+    height: 400px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid black;
+  }
+  
+  .living-room-motion-sensor, .living-room-person {
+    position: absolute;
+    text-align: center;
+    line-height: 30px;
+    width: 30px;
+    height: 30px;
+    background-color: #f0f0f0;
+    border: 1px solid black;
+    font-size: 17px;
+    z-index: 10;
+  }
+
+  .living-room-motion-sensor, .living-room-person {
+    border-radius: 50%;
+  }
+
+</style>
+
+<link rel="stylesheet" href="logicgate.css" />
+
+<script
+src="https://code.jquery.com/jquery-3.7.1.min.js"
+integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+crossorigin="anonymous"
+></script>
+
+<script
+src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"
+integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM="
+crossorigin="anonymous"
+></script>
+<script src="lib/jquery.ui.touch-punch.min.js"></script>
+<script src="lib/lz-string.min.js"></script>
+<script src="logicgate_template.js"></script>
+<script src="logicgate_back.js"></script>
+<script src="logicgate_front.js"></script>
+
+<script>
+  $(document).ready(async function(){
+    // Define div for the logic canvas
+    let logicDiv = document.getElementById("logic-canvas-here");
+    logicDiv.style.width = "500px"
+    logicDiv.style.height = "300px"
+
+    // Create the logic canvas
+    let mainWorld = new World();
+    let logicCanvas = new LogicCanvas(mainWorld, logicDiv);
+    
+    // Start the visual and world ticks
+    logicCanvas.startVisualTick();
+    logicCanvas.startWorldTick(tickPerSecond=20);
+
+    
+    let in1 = logicCanvas.createInput();
+    let in2 = logicCanvas.createInput();
+    let in3 = logicCanvas.createInput();
+    // let in4 = logicCanvas.createInput();
+    let out1 = logicCanvas.createOutput();
+
+    let orGate1 = logicCanvas.createGate("OR", 100, 50);
+    let orGate2 = logicCanvas.createGate("OR", 200, 100);
+
+    let sensors = [in1, in2, in3];
+
+    for(let i = 0; i < sensors.length; i++){
+      let sensor = sensors[i];
+      sensor.setLabel("M" + (i + 1));
+    }
+    
+    async function personCycleTest(){
+      let personElement = document.getElementById("living-room-person-1");
+      let previousWorldState = "";
+      const cycleEvery = 100;
+      for(let tick = 0; tick < 1; tick+=1/cycleEvery){
+        await sleep(1000/30);
+
+        let personContainer = document.getElementById("living-room-1");
+        let containerWidth = $(personContainer).width();
+        let containerHeight = $(personContainer).height();
+        let x = Math.sin(tick * Math.PI * 2) * 100 + containerWidth / 2;
+        let y = Math.cos(tick * Math.PI * 2) * 80 + containerHeight / 2;
+        personElement.style.left = x + "px";
+        personElement.style.top = y + "px";
+        let sensorsElement = document.getElementsByClassName("living-room-motion-sensor");
+        for(let i = 0; i < sensorsElement.length; i++){
+          let sensorElement = sensorsElement[i];
+          let sensor = sensors[i];
+          let sensorOffset = $(sensorElement).offset();
+          let personOffset = $(personElement).offset();
+          let dx = sensorOffset.left - personOffset.left;
+          let dy = sensorOffset.top - personOffset.top;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+          sensor.out(0).setState(distance < 200)
+        }
+        
+        let currentWorldState = logicCanvas.world.getStateSignature();
+
+        if(currentWorldState != previousWorldState){
+          previousWorldState = currentWorldState;
+          let circuitResult = await logicCanvas.world.evaluate(
+            undefined,
+            true
+          );
+        }
+
+        let expectedOutput = false;
+        sensors.forEach(sensor => {
+          if(sensor.out(0).getState()){
+            expectedOutput = true;
+          }
+        });
+
+        if(out1.in(0).getState() != expectedOutput){
+          console.log("Expected output: " + expectedOutput);
+          console.log("Actual output: " + out1.getState());
+          sensors.forEach(sensor => {
+            console.log(sensor, sensor.out(0).getState());
+          });
+          return false;
+        }
+      }
+      return true;
+    }
+
+    $("#resolve-challenge-1").click(async function(){
+      if(await personCycleTest()){
+        $("#challenge-1-result").text("Challenge 1 resolved!");
+      }else{
+        $("#challenge-1-result").text("Challenge 1 failed!");
+      }
+    });
+    
+    // Show Wireframe for just the LogicCanvas
+    logicCanvas.showWireFrame();
+  });
+</script>
+
+
+</html>
